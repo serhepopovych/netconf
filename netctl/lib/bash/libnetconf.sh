@@ -14,6 +14,7 @@ declare -a crt1_request_tools_list=(
 	'ipset'			# ipset(8)
 	'iptables-restore'	# iptables-restore(8)
 	'ip6tables-restore'	# ip6tables-restore(8)
+	'sysctl'		# sysctl(8)
 )
 
 # Source startup code
@@ -150,6 +151,13 @@ netconf_ifup()
 			## Link
 
 			ip link replace dev "$u_if" up "$@" 2>&1 |nctl_log_pipe
+
+			sysctl_file="/netctl/etc/netconf/sysctl.d/$u_if"
+			if [ -f "$sysctl_file" -a -s "$sysctl_file" ]; then
+				sysctl -q \
+					--pattern="^net[./]ipv[46][./](conf|neigh)[./]$u_if[./].+" \
+					--load="$sysctl_file" 2>&1 |nctl_log_pipe
+			fi
 			;;
 	esac
 }
