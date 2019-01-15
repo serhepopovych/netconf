@@ -146,17 +146,20 @@ netconf_ifup()
 
 			u_if="${u_if%:*}"
 			ip addr replace dev "$u_if" "$@" 2>&1 |nctl_log_pipe
+			nctl_get_rc || return
 			;;
 		*)
 			## Link
 
 			ip link replace dev "$u_if" up "$@" 2>&1 |nctl_log_pipe
+			nctl_get_rc || return
 
 			sysctl_file="/netctl/etc/netconf/sysctl.d/$u_if"
 			if [ -f "$sysctl_file" -a -s "$sysctl_file" ]; then
 				sysctl -q \
 					--pattern="^net[./]ipv[46][./](conf|neigh)[./]$u_if[./].+" \
 					--load="$sysctl_file" 2>&1 |nctl_log_pipe
+				nctl_get_rc || return
 			fi
 			;;
 	esac
@@ -186,14 +189,18 @@ netconf_ifdown()
 
 			local u_ip="$1"
 
-			[ -z "$(ip addr show to "$u_ip" dev "$u_if" 2>/dev/null)" ] ||
+			if [ -n "$(ip addr show to "$u_ip" dev "$u_if" 2>/dev/null)" ]; then
 				ip addr del dev "$u_if" "$u_ip" 2>&1 |nctl_log_pipe
+				nctl_get_rc || return
+			fi
 			;;
 		*)
 			## Link
 
-			[ ! -e "$NCTL_SCN_DIR/$u_if" ] ||
+			if [ -e "$NCTL_SCN_DIR/$u_if" ]; then
 				ip link del dev "$u_if" 2>&1 |nctl_log_pipe
+				nctl_get_rc || return
+			fi
 			;;
 	esac
 }
@@ -215,6 +222,7 @@ netconf_iflist()
 	set -- $val
 
 	printf '%s="%s"\n' "$var_name" "$*" 2>&1 |nctl_log_pipe
+	nctl_get_rc
 }
 declare -fr netconf_iflist
 
@@ -580,6 +588,7 @@ netconf_ngup()
 	shift
 
 	ip neighbour replace dev "$u_if" "$@" 2>&1 |nctl_log_pipe
+	nctl_get_rc
 }
 
 # Usage: netconf_ngdown <var_name>
@@ -615,6 +624,7 @@ netconf_nglist()
 	set -- $val
 
 	printf '%s="%s"\n' "$var_name" "$*" 2>&1 |nctl_log_pipe
+	nctl_get_rc
 }
 
 # Usage: netconf_ngusage [<action>] [<var_name_descr>]
@@ -688,6 +698,7 @@ netconf_rtup()
 	netconf_get_rtargs "$var_name" cmd "$@" || return
 
 	ip route replace "${cmd[@]}" 2>&1 |nctl_log_pipe
+	nctl_get_rc
 }
 
 # Usage: netconf_rtdown <var_name>
@@ -723,6 +734,7 @@ netconf_rtlist()
 	set -- $val
 
 	printf '%s="%s"\n' "$var_name" "$*" 2>&1 |nctl_log_pipe
+	nctl_get_rc
 }
 
 # Usage: netconf_rtusage [<action>] [<var_name_descr>]
@@ -766,6 +778,7 @@ netconf_reup()
 	shift
 
 	ip "$u_family" rule add pref "$u_pref" "$@" 2>&1 |nctl_log_pipe
+	nctl_get_rc
 }
 
 # Usage: netconf_redown <var_name>
@@ -812,6 +825,7 @@ netconf_relist()
 	set -- $val
 
 	printf '%s="%s"\n' "$var_name" "$*" 2>&1 |nctl_log_pipe
+	nctl_get_rc
 }
 
 # Usage: netconf_reusage [<action>] [<var_name_descr>]
@@ -856,12 +870,12 @@ netconf_vrup()
 	# 1. Create vr if not exist
 	[ ! -e "/var/run/netns/$u_name" ] || return $rc
 
-	ip netns add "$u_name" 2>&1 |nctl_log_pipe ||
-		nctl_inc_rc rc || return $rc
+	ip netns add "$u_name" 2>&1 |nctl_log_pipe
+	nctl_inc_rc rc || return $rc
 
 	# 2. Up loopback interface
-	ip netns exec "$u_name" ip link set dev lo up 2>&1 |nctl_log_pipe ||
-		nctl_inc_rc rc || return $rc
+	ip netns exec "$u_name" ip link set dev lo up 2>&1 |nctl_log_pipe
+	nctl_inc_rc rc || return $rc
 
 	# 3. Setup and move interfaces to VR
 	while [ $# -gt 0 ]; do
@@ -933,8 +947,8 @@ netconf_vrup()
 		netconf_ifup "$u_if"
 
 		# Move interface to VR
-		ip link set dev "$u_if" netns "$u_name" 2>&1 |nctl_log_pipe ||
-			nctl_inc_rc rc || return $rc
+		ip link set dev "$u_if" netns "$u_name" 2>&1 |nctl_log_pipe
+		nctl_inc_rc rc || return $rc
 	done
 
 	# 4. Load ipset(8) rules
@@ -1037,8 +1051,10 @@ netconf_vrdown()
 	local u_name="$1"
 
 	# 1. Destroy vr
-	[ ! -e "/var/run/netns/$u_name" ] ||
+	if [ -e "/var/run/netns/$u_name" ]; then
 		ip netns del "$u_name" 2>&1 |nctl_log_pipe
+		nctl_get_rc
+	fi
 }
 
 # Usage: netconf_vrlist <var_name>
@@ -1059,6 +1075,7 @@ netconf_vrlist()
 	local u_dir="$netconf_vr_dir/$u_name"
 
 	printf '%s="%s"\n' "$var_name" "$*" 2>&1 |nctl_log_pipe
+	nctl_get_rc || return
 
 	# 1. List vr netconf configuration
 	{
@@ -1081,6 +1098,7 @@ netconf_vrlist()
 		netconf_vr_dir="$u_dir/netconf/vr" \
 			"$program_invocation_name" list
 	} 2>&1 |nctl_log_pipe
+	nctl_get_rc
 }
 
 # Usage: netconf_vrusage [<action>] [<var_name_descr>]
