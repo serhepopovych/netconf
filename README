@@ -1,0 +1,26 @@
+Persistent network configuration (netconf) system using iproute2
+================================================================
+
+Netconf is a shell wrapper for iproute2 package ip(8) utility and their
+subcommands line ip-link(8), ip-route(8) and ip-rules(8). It uses plain
+text files stored in /netctl/etc/netconf/ subdirectories of specified
+name and content format.
+
+In general each line in config files used directly as command line to
+corresponding ip(8) subcommand with only one exception forced that
+requires network device (interface) name to be specified exactly at
+first position in command line (i.e. en0_1="en0.1 up type vlan id 1").
+
+Most of network device kinds (e.g. vlan, bond, gre, gretap, etc) already
+supported by netconf and it is very easy to add new one when required.
+
+There is support for routes and policy-based routing rules.
+
+Virtual routers (based on ip-netns(8)) supporting custom ipset and
+iptables rules supported, however their functionality is limited by
+missing pid, uts and mount namespace isolation. Please consider using
+container solutions like docker or lxc if it is necessary to run program
+in virtual router network namespace.
+
+See /netctl/etc/netconf.conf comments for more information on file and
+variable name formats and configuration examples.
