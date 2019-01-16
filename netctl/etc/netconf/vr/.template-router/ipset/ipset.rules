@@ -1,0 +1,14 @@
+
+### Initialization file for AFI neutral part ###
+
+## Pre ACLs
+
+# Bypass uRPF (RFC3704) checks
+create pre-no-uRPF		list:set size 8
+add pre-no-uRPF			pre-no-uRPF-v4
+add pre-no-uRPF			pre-no-uRPF-v6
+
+## Input ACLs
+
+## Forward ACLs
+

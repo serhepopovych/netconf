@@ -1,0 +1,54 @@
+###############################################################################
+*raw
+###############################################################################
+
+:PREROUTING  ACCEPT [0:0]
+:OUTPUT      ACCEPT [0:0]
+
+# Perform initial actions on packet reception, before routing occurs
+# PREROUTING chain
+# ------------------------------------------------------------------
+#
+# 1. If packet comes not from uplink interface group and uRPF checks
+#    in strict mode failed, drop packet silently.
+#
+# 2. Mark packets as untracked for connection tracking system. Note that this
+#    affects packet defragmentation process: untracked packets not defragmented
+#    by nf_defrag_ipv4, unless defrag_untracked module parameter is set.
+#
+-A PREROUTING -m devgroup ! --src-group uplink -m rpfilter --invert -m set ! --match-set pre-no-uRPF src -j DROP
+-A PREROUTING -m addrtype ! --dst-type LOCAL -j CT --notrack
+
+COMMIT
+
+###############################################################################
+#*mangle
+###############################################################################
+#
+#:PREROUTING  ACCEPT [0:0]
+#:INPUT       ACCEPT [0:0]
+#:FORWARD     ACCEPT [0:0]
+#:OUTPUT      ACCEPT [0:0]
+#:POSTROUTING ACCEPT [0:0]
+#
+#COMMIT
+
+###############################################################################
+#*nat
+###############################################################################
+#
+#:PREROUTING  ACCEPT [0:0]
+#:OUTPUT      ACCEPT [0:0]
+#:POSTROUTING ACCEPT [0:0]
+#
+#COMMIT
+
+###############################################################################
+#*filter
+###############################################################################
+#
+#:INPUT       ACCEPT [0:0]
+#:FORWARD     ACCEPT [0:0]
+#:OUTPUT      ACCEPT [0:0]
+#
+#COMMIT

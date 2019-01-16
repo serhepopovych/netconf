@@ -1,0 +1,31 @@
+
+# Please pay attention to allocation of hash.
+#
+#  According to ipset(8) if IPSET netfilter target used to add entries in set,
+#  the size of hashtable for hash:* types sets NOT changed (hash table will
+#  not be reallocated with growing number of entries in a set). This
+#  leads of hash clashes and performance degradation.
+#
+#  Also it is not feasible to have reallocations of hashtable with
+#  number of entries growth as reallocation might fail (very unlikely!).
+#
+#  For high volume sets (like list of blocked addresses) it is recommended
+#  to set hashsize to maxelem if enought free memory available.
+#
+# NOTE:
+#    This file intended only for creation of ipset sets when no
+#    such is configured in system. If you want to add custom *local*
+#    data to ipset set consider adding it to local.d/<name_of_the_set>/*.txt
+#    files.
+
+### Initialization file for AFI "inet6" ###
+
+## Pre ACLs
+
+# Bypass uRPF (RFC 3704) checks
+create pre-no-uRPF-v6		hash:net          family inet6 hashsize 1024 maxelem 65536 counters comment
+
+## Input ACLs
+
+## Forward ACLs
+

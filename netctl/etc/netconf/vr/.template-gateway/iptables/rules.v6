@@ -1,0 +1,251 @@
+###############################################################################
+*raw
+###############################################################################
+
+:PREROUTING  ACCEPT [0:0]
+:OUTPUT      ACCEPT [0:0]
+
+# Perform initial actions on packet reception, before routing occurs
+# PREROUTING chain
+# ------------------------------------------------------------------
+#
+# 1. If packet comes not from uplink interface group and uRPF checks
+#    in strict mode failed, drop packet silently.
+#
+-A PREROUTING -m devgroup ! --src-group uplink -m rpfilter --invert -m set ! --match-set pre-no-uRPF src -j DROP
+
+COMMIT
+
+###############################################################################
+*mangle
+###############################################################################
+
+:PREROUTING  ACCEPT [0:0]
+:INPUT       ACCEPT [0:0]
+:FORWARD     ACCEPT [0:0]
+:OUTPUT      ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+
+# Mangle forwarded packets
+# FORWARD chain
+# ------------------------
+#
+# Mark DNATed packets not going from/to uplink group for future use
+# in POSTROUTING chain "nat" table to SNAT source of DNATed packets.
+#
+# This is needed for correct DNAT behavior (e.g.: host from downlink group
+# connects to DNATed port 80, and DNATed packet would go again to downlink
+# group, where host initiating connection and host for which DNAT is performed
+# may be directly reachable: without SNAT packets from DNATed host to initial
+# host would go directly, and thus dropped because host establish connection
+# with DNATed host).
+#
+-A FORWARD -a accept -m devgroup --src-group downlink --dst-group downlink -j MARK --set-xmark 0x7fff0001/0xffffffff
+
+COMMIT
+
+###############################################################################
+#*nat
+###############################################################################
+#
+#:PREROUTING  ACCEPT [0:0]
+#:OUTPUT      ACCEPT [0:0]
+#:POSTROUTING ACCEPT [0:0]
+#
+## DNAT incoming packets
+## PREROUTING chain
+## ---------------------
+#
+## SNAT outgoing packets
+## POSTROUTING chain
+## ---------------------
+##
+## 1. Allow locally originated packets to pass without SNAT.
+##
+## 2. Use MASQUERADE to SNAT all packets going to uplink.
+##
+## 3. MASQUERADE all packets going from downlink to downlink
+##    if they belongs to DNATed connection.
+##
+## Use MASQUERADE as it does not require source address to SNAT,
+## permitting to create generic rules.
+##
+#-A POSTROUTING -m addrtype --src-type LOCAL -j ACCEPT
+#-A POSTROUTING -m devgroup --dst-group uplink -j MASQUERADE
+#-A POSTROUTING -m mark --mark 0x7fff0001/0xffffffff -m conntrack --ctstate DNAT -j MASQUERADE
+#
+#COMMIT
+
+###############################################################################
+*filter
+###############################################################################
+
+:INP-RESET        - [0:0]
+:INPUT       ACCEPT [0:0]
+
+:FWD-RESET        - [0:0]
+:FWD-D2U          - [0:0]
+:FWD-U2D          - [0:0]
+:FWD-U2U          - [0:0]
+:FWD-D2D          - [0:0]
+:FORWARD     ACCEPT [0:0]
+
+:OUTPUT      ACCEPT [0:0]
+
+# Input packets destined to host itself (i.e. local)
+# ==================================================
+#
+# Chains specified in order they used.
+
+# Discard packets at input
+# ------------------------
+#
+# 1. Ratelimit sending discard replies to the origin of packet.
+#    Note that such rate limiting is only neccessary for TCP as
+#    ICMP has built in ratelimit control mechanisms which could
+#    be accessed with net/ipv6/icmp/ratelimit and sysctl variable.
+#
+# 2. For TCP send TCP packet with RST bit set to the origin.
+#
+# 3. For UDP send ICMP Destination Unreachable Port Unreachable.
+#
+# 4. Silently DROP packets of other types.
+#
+-A INP-RESET -m hashlimit --hashlimit-above 200/sec --hashlimit-burst 5 --hashlimit-mode srcip --hashlimit-name INP-RESET --hashlimit-htable-size 32768 -j DROP
+-A INP-RESET -p tcp -j REJECT --reject-with tcp-reset
+-A INP-RESET -p udp -j REJECT --reject-with icmp6-port-unreachable
+-A INP-RESET -j DROP
+
+# INPUT chain
+# -----------
+#
+# Following policy applied incoming traffic at ingress:
+#
+# 1. Do not limit packets coming from system loopback (lo)
+#    interface.
+#
+# 2. Accept packets for already ESTABLISHED connection and packets
+#    RELATED to the existing connection (like ftp-data channel,
+#    ICMPs).
+#
+# 3. Discard packets, that not initiate NEW connection or
+#    UNTRACKED by CT --notrack target in "raw" table.
+#
+# 4. Accept ALL ICMP packets.
+#
+# 5. Discard ALL other packets.
+#
+-A INPUT -i lo -j ACCEPT
+-A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -m conntrack ! --ctstate NEW,UNTRACKED -j INP-RESET
+-A INPUT -m set --match-set inp-block dst,dst,src -j INP-RESET
+-A INPUT -m set ! --match-set inp-allow dst,dst,src -j INP-RESET
+
+# Forward packets destined to other hosts
+# =======================================
+#
+# Chains specified in order they used.
+
+# Discard packets at forward
+# --------------------------
+#
+# Forward packets destined to the 'sink' interface group to let
+# sink drop packets (silently on dummy interface type).
+#
+# Reject with ICMP Destination Administratively Prohibited the rest.
+# ICMP is generated by the kernel routines and is subject to ratelimit.
+#
+# See net/ipv6/icmp/ratelimit sysctl variable for current ICMP ratelimit.
+#
+-A FWD-RESET -m devgroup --dst-group sink -j ACCEPT
+-A FWD-RESET -j REJECT --reject-with icmp6-adm-prohibited
+
+# Forward UPLINK traffic to DOWNLINK
+# ----------------------------------
+#
+# 1. Accept packets for already ESTABLISHED connections or packets, initiating
+#    new connection which is related to already ESTABLISHED (e.g.: ICMP errors,
+#    ftp-data, etc).
+#
+# 2. Accept packets for DNATed connections if limit on connection from source
+#    initiating new one is not reached.
+#    Limit is: 1024 connections per source
+#
+# 3. Drop all other packets.
+#
+-A FWD-U2D -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A FWD-U2D -m set --match-set fwd-u2d-block-iif dst,src -j DROP
+-A FWD-U2D -m set --match-set fwd-u2d-block-pkt dst,dst,src -j DROP
+-A FWD-U2D -m conntrack --ctstate DNAT -m connlimit --connlimit-upto 1024 --connlimit-mask 128 --connlimit-saddr -j ACCEPT
+-A FWD-U2D -j DROP
+
+# Forward DOWNLINK traffic to UPLINK
+# ----------------------------------
+#
+# 1. Accept packets for already ESTABLISHED connections, packets, initiating
+#    new connection which is related to already ESTABLISHED (e.g.: ICMP errors,
+#    ftp-data, etc) and DNATed packets.
+#
+# 2. Accept packets from downlink to uplink for NEW or DNATed connections, if
+#    limit on connections from source initiating new one is not reached.
+#    Limit is: 1024 connections per source address.
+#
+# 3. Discard all other packets.
+#
+-A FWD-D2U -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A FWD-D2U -m set --match-set fwd-d2u-block-pkt src,dst,dst -j DROP
+-A FWD-D2U -m set --match-set fwd-d2u-block-oif src,dst -j DROP
+-A FWD-D2U -m conntrack --ctstate NEW,DNAT -m connlimit --connlimit-upto 1024 --connlimit-mask 128 --connlimit-saddr -j ACCEPT
+-A FWD-D2U -j FWD-RESET
+
+# Forward DOWNLINK traffic to DOWNLINK
+# ------------------------------------
+#
+# 1. Accept packets for already ESTABLISHED connections, packets, initiating
+#    new connection which is related to already ESTABLISHED (e.g.: ICMP errors,
+#    ftp-data, etc) and DNATed packets.
+#
+# 2. Accept packets from downlink to downlink for NEW or DNATed connections, if
+#    limit on connections from source initiating new one is not reached.
+#    Reuse mark value set in FORWARD chain, mangle table.
+#    Limit is: 2048 connections per source address.
+#
+# 3. Discard all other packets.
+#
+-A FWD-D2D -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A FWD-D2D -m set --match-set fwd-d2d-block-pkt src,dst,dst -j DROP
+-A FWD-D2D -m set --match-set fwd-d2d-block-oif src,dst -j DROP
+-A FWD-D2D -m conntrack --ctstate NEW,DNAT -m connlimit --connlimit-upto 2048 --connlimit-mask 128 --connlimit-saddr -j ACCEPT
+-A FWD-D2D -j FWD-RESET
+
+# Forward UPLINK traffic to UPLINK
+# --------------------------------
+#
+# 1. Drop all packets.
+#
+-A FWD-U2U -j DROP
+
+# FORWARD chain
+# -------------
+#
+# Following flows are permitted:
+#
+#   1. From UPLINK to DOWNLINK
+#   2. From DOWNLINK to UPLINK
+#   3. From DOWNLINK to DOWNLINK
+#   4. From UPLINK to UPLINK
+#
+# Match entries ordered in decreasing of amounts of traffic per
+# specified flow. Moreover it is assument that amount of traffic
+# from UPLINK to DOWNLINK is larger than amount of traffic
+# from DOWNLINK to UPLINK.
+#
+# Traffic flowing from/to other directions is discarded.
+#
+-A FORWARD -m devgroup --src-group uplink --dst-group downlink -j FWD-U2D
+-A FORWARD -m devgroup --src-group downlink --dst-group uplink -j FWD-D2U
+-A FORWARD -m devgroup --src-group downlink --dst-group downlink -j FWD-D2D
+-A FORWARD -m devgroup --src-group uplink --dst-group uplink -j FWD-U2U
+-A FORWARD -j FWD-RESET
+
+COMMIT

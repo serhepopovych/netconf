@@ -1,0 +1,392 @@
+#!/bin/bash
+
+# Log all messages to standard output in addition to logfile
+NCTL_LOG_STD=y
+
+# External tool dependencies, MUST always be defined,
+# even if empty (e.g.: declare -a crt1_request_tools_list=())
+declare -a crt1_request_tools_list=()
+
+# Source startup code
+. /netctl/lib/bash/crt1.sh
+
+# Source functions libraries
+. /netctl/lib/bash/librtti.sh
+. /netctl/lib/bash/libiter.sh
+. /netctl/lib/bash/libfile.sh
+. /netctl/lib/bash/liblog.sh
+. /netctl/lib/bash/libprocess.sh
+
+# Usage: __netconf_action {start|stop|restart|list|\
+#			 brup|brdown|brlist|\
+#			 bnup|bndown|bnlist|\
+#			 dmup|dmdown|dmlist|\
+#			 vzup|vzdown|vzlist|\
+#			 gtup|gtdown|gtlist|\
+#			 g6tup|g6tdown|g6tlist|\
+#			 vup|vdown|vlist|\
+#			 mvup|mvdown|mvlist|\
+#			 gup|gdown|glist|\
+#			 g6up|g6down|g6list|\
+#			 ibup|ibdown|iblist|\
+#			 ngup|ngdown|nglist|\
+#			 rtup|rtdown|rtlist|\
+#			 reup|redown|relist|\
+#			 vrup|vrdown|vrlist} ...
+__netconf_action()
+{
+	local action="${1:?missing 1st argument to function \"$FUNCNAME\" (action)}"
+	shift
+	local -i rc=0
+
+	case "$action" in
+		start)
+			# Up BRIDGE
+			"$FUNCNAME" brup "${netconf_bridge_list[@]}" || nctl_inc_rc rc
+
+			# Up BOND
+			"$FUNCNAME" bnup "${netconf_bond_list[@]}" || nctl_inc_rc rc
+
+			# Up DUMMY
+			"$FUNCNAME" dmup "${netconf_dummy_list[@]}" || nctl_inc_rc rc
+
+			# Up VETH
+			"$FUNCNAME" vzup "${netconf_veth_list[@]}" || nctl_inc_rc rc
+
+			# Up GRETAP
+			"$FUNCNAME" gtup "${netconf_gretap_list[@]}" || nctl_inc_rc rc
+
+			# Up IP6GRETAP
+			"$FUNCNAME" g6tup "${netconf_ip6gretap_list[@]}" || nctl_inc_rc rc
+
+			# Up VLAN
+			"$FUNCNAME" vup "${netconf_vlan_list[@]}" || nctl_inc_rc rc
+
+			# Up MACVLAN
+			"$FUNCNAME" mvup "${netconf_macvlan_list[@]}" || nctl_inc_rc rc
+
+			# Up GRE
+			"$FUNCNAME" gup "${netconf_gre_list[@]}" || nctl_inc_rc rc
+
+			# Up IP6GRE
+			"$FUNCNAME" g6up "${netconf_ip6gre_list[@]}" || nctl_inc_rc rc
+
+			# Up IFB
+			"$FUNCNAME" ibup "${netconf_ifb_list[@]}" || nctl_inc_rc rc
+
+			# Up NEIGHBOUR
+			"$FUNCNAME" ngup "${netconf_neighbour_list[@]}" || nctl_inc_rc rc
+
+			# Up ROUTE
+			"$FUNCNAME" rtup "${netconf_route_list[@]}" || nctl_inc_rc rc
+
+			# Up RULE
+			"$FUNCNAME" reup "${netconf_rule_list[@]}" || nctl_inc_rc rc
+
+			# Up VR
+			"$FUNCNAME" vrup "${netconf_vr_list[@]}" || nctl_inc_rc rc
+			;;
+		stop)
+			# Down VR
+			"$FUNCNAME" vrdown "${netconf_vr_list[@]}" || nctl_inc_rc rc
+
+			# Down RULE
+			"$FUNCNAME" redown "${netconf_rule_list[@]}" || nctl_inc_rc rc
+
+			# Down ROUTE
+			"$FUNCNAME" rtdown "${netconf_route_list[@]}" || nctl_inc_rc rc
+
+			# Down NEIGHBOUR
+			"$FUNCNAME" ngdown "${netconf_neighbour_list[@]}" || nctl_inc_rc rc
+
+			# Down IFB
+			"$FUNCNAME" ibdown "${netconf_ifb_list[@]}" || nctl_inc_rc rc
+
+			# Down IP6GRE
+			"$FUNCNAME" g6down "${netconf_ip6gre_list[@]}" || nctl_inc_rc rc
+
+			# Down GRE
+			"$FUNCNAME" gdown "${netconf_gre_list[@]}" || nctl_inc_rc rc
+
+			# Down MACVLAN
+			"$FUNCNAME" mvdown "${netconf_macvlan_list[@]}" || nctl_inc_rc rc
+
+			# Down VLAN
+			"$FUNCNAME" vdown "${netconf_vlan_list[@]}" || nctl_inc_rc rc
+
+			# Down IP6GRETAP
+			"$FUNCNAME" g6tdown "${netconf_ip6gretap_list[@]}" || nctl_inc_rc rc
+
+			# Down GRETAP
+			"$FUNCNAME" gtdown "${netconf_gretap_list[@]}" || nctl_inc_rc rc
+
+			# Down VETH
+			"$FUNCNAME" vzdown "${netconf_veth_list[@]}" || nctl_inc_rc rc
+
+			# Down DUMMY
+			"$FUNCNAME" dmdown "${netconf_dummy_list[@]}" || nctl_inc_rc rc
+
+			# Down BOND
+			"$FUNCNAME" bndown "${netconf_bond_list[@]}" || nctl_inc_rc rc
+
+			# Down BRIDGE
+			"$FUNCNAME" brdown "${netconf_bridge_list[@]}" || nctl_inc_rc rc
+			;;
+		restart)
+			"$FUNCNAME" stop
+
+			sleep 1
+
+			"$FUNCNAME" start
+			;;
+		list)
+			# List BRIDGE
+			"$FUNCNAME" brlist "${netconf_bridge_list[@]}" || nctl_inc_rc rc
+
+			# List BOND
+			"$FUNCNAME" bnlist "${netconf_bond_list[@]}" || nctl_inc_rc rc
+
+			# List DUMMY
+			"$FUNCNAME" dmlist "${netconf_dummy_list[@]}" || nctl_inc_rc rc
+
+			# List VETH
+			"$FUNCNAME" vzlist "${netconf_veth_list[@]}" || nctl_inc_rc rc
+
+			# List GRETAP
+			"$FUNCNAME" gtlist "${netconf_gretap_list[@]}" || nctl_inc_rc rc
+
+			# List IP6GRETAP
+			"$FUNCNAME" g6tlist "${netconf_ip6gretap_list[@]}" || nctl_inc_rc rc
+
+			# List VLAN
+			"$FUNCNAME" vlist "${netconf_vlan_list[@]}" || nctl_inc_rc rc
+
+			# List MACVLAN
+			"$FUNCNAME" mvlist "${netconf_macvlan_list[@]}" || nctl_inc_rc rc
+
+			# List GRE
+			"$FUNCNAME" glist "${netconf_gre_list[@]}" || nctl_inc_rc rc
+
+			# List IP6GRE
+			"$FUNCNAME" g6list "${netconf_ip6gre_list[@]}" || nctl_inc_rc rc
+
+			# List IFB
+			"$FUNCNAME" iblist "${netconf_ifb_list[@]}" || nctl_inc_rc rc
+
+			# List NEIGHBOUR
+			"$FUNCNAME" nglist "${netconf_neighbour_list[@]}" || nctl_inc_rc rc
+
+			# List ROUTE
+			"$FUNCNAME" rtlist "${netconf_route_list[@]}" || nctl_inc_rc rc
+
+			# List RULE
+			"$FUNCNAME" relist "${netconf_rule_list[@]}" || nctl_inc_rc rc
+
+			# List VR
+			"$FUNCNAME" vrlist "${netconf_vr_list[@]}" || nctl_inc_rc rc
+			;;
+		brup|brdown|brlist|\
+		bnup|bndown|bnlist|\
+		dmup|dmdown|dmlist|\
+		vzup|vzdown|vzlist|\
+		gtup|gtdown|gtlist|\
+		g6tup|g6tdown|g6tlist|\
+		vup|vdown|vlist|\
+		mvup|mvdown|mvlist|\
+		gup|gdown|glist|\
+		g6up|g6down|g6list|\
+		ibup|ibdown|iblist|\
+		ngup|ngdown|nglist|\
+		rtup|rtdown|rtlist|\
+		reup|redown|relist|\
+		vrup|vrdown|vrlist)
+			# Check usage
+			case "$1" in
+				'')
+					# If not recursive call: print usage
+					[ "${FUNCNAME[1]}" = "$FUNCNAME" ] ||
+						netconf_usage "$action"
+					;;
+				help|usage)
+					# Help/Usage
+					netconf_usage "$action"
+					;;
+				*)
+					# Do action
+					nctl_action_for_each "netconf_$action" "$@" ||
+						nctl_inc_rc rc
+					;;
+			esac
+			;;
+		*)
+			! :
+			nctl_inc_rc rc
+	esac
+
+	return $rc
+}
+
+# Call default (inherit)
+: ${netconf_action:='__netconf_action'}
+
+usage()
+{
+	printf >&$NCTL_STDERR \
+'usage: %s {start|stop|restart|list} [bridge|bond|dummy|veth|gretap|ip6gretap|
+	vlan|macvlan|gre|ip6gre|ifb|neighbour|route|rule|vr] ...
+
+       %s {brup|brdown|brlist}    {bridge interface|help|usage} ...
+
+       %s {bnup|bndown|bnlist}    {bond interface|help|usage} ...
+
+       %s {dmup|dmdown|dmlist}    {dummy interface|help|usage} ...
+
+       %s {vzup|vzdown|vzlist}    {veth interface|help|usage} ...
+
+       %s {gtup|gtdown|gtlist}    {gretap interface|help|usage} ...
+
+       %s {g6tup|g6tdown|g6tlist} {ip6gretap interface|help|usage} ...
+
+       %s {vup|vdown|vlist}       {vlan interface|help|usage} ...
+
+       %s {mvup|mvdown|mvlist}    {macvlan interface|help|usage} ...
+
+       %s {gup|gdown|glist}       {gre interface|help|usage} ...
+
+       %s {g6up|g6down|g6list}    {ip6gre interface|help|usage} ...
+
+       %s {ibup|ibdown|iblist}    {ifb interface|help|usage} ...
+
+       %s {ngup|ngdown|nglist}    {neighbour name|help|usage} ...
+
+       %s {rtup|rtdown|rtlist}    {route name|help|usage} ...
+
+       %s {reup|redown|relist}    {rule name|help|usage} ...
+
+       %s {vrup|vrdown|vrlist}    {virtual router name|help|usage} ...
+' "$program_invocation_short_name" \
+  "$program_invocation_short_name" \
+  "$program_invocation_short_name" \
+  "$program_invocation_short_name" \
+  "$program_invocation_short_name" \
+  "$program_invocation_short_name" \
+  "$program_invocation_short_name" \
+  "$program_invocation_short_name" \
+  "$program_invocation_short_name" \
+  "$program_invocation_short_name" \
+  "$program_invocation_short_name" \
+  "$program_invocation_short_name" \
+  "$program_invocation_short_name" \
+  "$program_invocation_short_name" \
+  "$program_invocation_short_name" \
+  "$program_invocation_short_name" \
+  #
+
+	exit $NCTL_EXIT_FAILURE
+}
+
+# Init
+NETCONF_ACTION="$1"
+shift
+declare -a netconf_argv
+
+# See how we were called
+case "$NETCONF_ACTION" in
+	start|stop|restart|list)
+		# Load BRIDGE, BOND, DUMMY, IFB, VETH, GRETAP, IP6GRETAP, VLAN,
+		# MACVLAN, GRE, IP6GRE, NEIGHBOUR, ROUTE, RULE and VR configs
+		netconf_argv=("$@")
+		if nctl_is_var_of_empty netconf_argv; then
+			netconf_argv=(
+				'bridge'
+				'bond'
+				'dummy'
+				'veth'
+				'gretap'
+				'ip6gretap'
+				'vlan'
+				'macvlan'
+				'gre'
+				'ip6gre'
+				'ifb'
+				'neighbour'
+				'route'
+				'rule'
+				'vr'
+			)
+		fi
+		set --
+		;;
+	brup|brdown|brlist)
+		# Load only BRIDGE related configs
+		netconf_argv=('bridge')
+		;;
+	bnup|bndown|bnlist)
+		# Load only BOND related configs
+		netconf_argv=('bond')
+		;;
+	dmup|dmdown|dmlist)
+		# Load only DUMMY related configs
+		netconf_argv=('dummy')
+		;;
+	vzup|vzdown|vzlist)
+		# Load only VETH related configs
+		netconf_argv=('veth')
+		;;
+	gtup|gtdown|gtlist)
+		# Load only GRETAP related configs
+		netconf_argv=('gretap')
+		;;
+	g6tup|g6tdown|g6tlist)
+		# Load only IP6GRETAP related configs
+		netconf_argv=('ip6gretap')
+		;;
+	vup|vdown|vlist)
+		# Load only VLAN related configs
+		netconf_argv=('vlan')
+		;;
+	mvup|mvdown|mvlist)
+		# Load only MACVLAN related configs
+		netconf_argv=('macvlan')
+		;;
+	gup|gdown|glist)
+		# Load only GRE related configs
+		netconf_argv=('gre')
+		;;
+	g6up|g6down|g6list)
+		# Load only IP6GRE related configs
+		netconf_argv=('ip6gre')
+		;;
+	ibup|ibdown|iblist)
+		# Load only IFB related configs
+		netconf_argv=('ifb')
+		;;
+	ngup|ngdown|nglist)
+		# Load only NEIGHBOUR related configs
+		netconf_argv=('neighbour')
+		;;
+	rtup|rtdown|rtlist)
+		# Load only ROUTE related configs
+		netconf_argv=('route')
+		;;
+	reup|redown|relist)
+		# Load only RULE related configs
+		netconf_argv=('rule')
+		;;
+	vrup|vrdown|vrlist)
+		# Load only VR related configs
+		netconf_argv=('vr')
+		;;
+	*)
+		usage
+		;;
+esac
+
+# Source local netconf configuration
+nctl_SourceIfNotEmpty "$NCTL_PREFIX/etc/netconf.conf"
+
+# Source netconf library.
+. /netctl/lib/bash/libnetconf.sh "${netconf_argv[@]}" || usage
+
+# Execute action
+"$netconf_action" "$NETCONF_ACTION" "$@"

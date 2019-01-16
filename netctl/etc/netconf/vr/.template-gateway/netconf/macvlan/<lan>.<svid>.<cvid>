@@ -1,0 +1,6 @@
+## <x_customer_login>
+
+# lan
+<x_lan_iface_var>="<x_lan_iface> mtu 1500 group downlink"
+<x_lan_iface_var>_a0="<x_lan_iface>:0 <x_ip4_lan_address_cidr> broadcast +"
+<x_lan_iface_var>_a1="<x_lan_iface>:1 <x_ip6_customer_prefix>::<x_ip4_lan_address>/64"

@@ -1,0 +1,3 @@
+null0="null0 group sink mtu 65535 type dummy"
+null0_a0="null0:0 192.0.2.1/24 broadcast +"
+null0_a1="null0:1 100::1/64"

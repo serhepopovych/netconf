@@ -1,0 +1,62 @@
+
+# Please pay attention to allocation of hash.
+#
+#  According to ipset(8) if IPSET netfilter target used to add entries in set,
+#  the size of hashtable for hash:* types sets NOT changed (hash table will
+#  not be reallocated with growing number of entries in a set). This
+#  leads of hash clashes and performance degradation.
+#
+#  Also it is not feasible to have reallocations of hashtable with
+#  number of entries growth as reallocation might fail (very unlikely!).
+#
+#  For high volume sets (like list of blocked addresses) it is recommended
+#  to set hashsize to maxelem if enought free memory available.
+#
+# NOTE:
+#    This file intended only for creation of ipset sets when no
+#    such is configured in system. If you want to add custom *local*
+#    data to ipset set consider adding it to local.d/<name_of_the_set>/*.txt
+#    files.
+
+### Initialization file for AFI "inet6" ###
+
+## Pre ACLs
+
+# Bypass uRPF (RFC 3704) checks
+create pre-no-uRPF-v6		hash:net          family inet6 hashsize 1024 maxelem 65536 counters comment
+
+## Input ACLs
+
+# Allowed services
+create inp-allow-v6		hash:net,port,net family inet6 hashsize 1024 maxelem 65536 counters comment
+# echo-request
+add inp-allow-v6 ::/1,icmpv6:echo-request,::/1				comment "ICMPV6:ECHO-REQUEST"
+add inp-allow-v6 ::/1,icmpv6:echo-request,8000::/1			comment "ICMPV6:ECHO-REQUEST"
+add inp-allow-v6 8000::/1,icmpv6:echo-request,::/1			comment "ICMPV6:ECHO-REQUEST"
+add inp-allow-v6 8000::/1,icmpv6:echo-request,8000::/1			comment "ICMPV6:ECHO-REQUEST"
+# neighbour-solicitation
+add inp-allow-v6 ::/1,icmpv6:neighbour-solicitation,::/1		comment "ICMPV6:NEIGHBOUR-SOLICITATION"
+add inp-allow-v6 ::/1,icmpv6:neighbour-solicitation,8000::/1		comment "ICMPV6:NEIGHBOUR-SOLICITATION"
+add inp-allow-v6 8000::/1,icmpv6:neighbour-solicitation,::/1		comment "ICMPV6:NEIGHBOUR-SOLICITATION"
+add inp-allow-v6 8000::/1,icmpv6:neighbour-solicitation,8000::/1	comment "ICMPV6:NEIGHBOUR-SOLICITATION"
+# neighbour-advertisement
+add inp-allow-v6 ::/1,icmpv6:neighbour-advertisement,::/1		comment "ICMPV6:NEIGHBOUR-ADVERTISEMENT"
+add inp-allow-v6 ::/1,icmpv6:neighbour-advertisement,8000::/1		comment "ICMPV6:NEIGHBOUR-ADVERTISEMENT"
+add inp-allow-v6 8000::/1,icmpv6:neighbour-advertisement,::/1		comment "ICMPV6:NEIGHBOUR-ADVERTISEMENT"
+add inp-allow-v6 8000::/1,icmpv6:neighbour-advertisement,8000::/1	comment "ICMPV6:NEIGHBOUR-ADVERTISEMENT"
+
+# Blocked services
+create inp-block-v6		hash:net,port,net family inet6 hashsize 1024 maxelem 65536 timeout 10800 counters comment
+
+# Ratelimit access to service
+create inp-ratelimit-v6		hash:net,port,net family inet6 hashsize 1024 maxelem 65536 comment
+
+## Forward ACLs
+
+# Block packets to/from downlink
+create fwd-u2d-block-iif-v6	hash:net,iface    family inet6 hashsize 1024 maxelem 65536 counters comment
+create fwd-u2d-block-pkt-v6	hash:net,port,net family inet6 hashsize 1024 maxelem 65536 counters comment
+create fwd-d2u-block-oif-v6	hash:net,iface    family inet6 hashsize 1024 maxelem 65536 counters comment
+create fwd-d2u-block-pkt-v6	hash:net,port,net family inet6 hashsize 1024 maxelem 65536 counters comment
+create fwd-d2d-block-oif-v6	hash:net,iface    family inet6 hashsize 1024 maxelem 65536 counters comment
+create fwd-d2d-block-pkt-v6	hash:net,port,net family inet6 hashsize 1024 maxelem 65536 counters comment

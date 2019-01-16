@@ -1,0 +1,5 @@
+This template contains minimal configuration setup for
+traffic forwarding without connection traffic and fragment
+reassembly for transit traffic.
+
+There is no other firewall rules configured.

@@ -1,0 +1,6 @@
+## <x_customer_login>
+
+# inet
+<x_inet_iface_var>="<x_inet_iface> mtu 1500 group uplink"
+<x_inet_iface_var>_a0="<x_inet_iface>:0 <x_ip4_inet_address_cidr> broadcast +"
+<x_inet_iface_var>_a1="<x_inet_iface>:1 fe80::<x_ip4_inet_address>/64"

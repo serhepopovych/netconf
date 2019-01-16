@@ -1,0 +1,3 @@
+[submodule ".subprojects/libnctl"]
+	path = .subprojects/libnctl
+	url = https://github.com/serhepopovych/libnctl.git

@@ -1,0 +1,3 @@
+This template contains required configuration for VR
+acting as customer gateway with statefull firewall,
+NAT/PAT and forwarding.

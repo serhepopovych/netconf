@@ -1,0 +1,52 @@
+
+### Initialization file for AFI neutral part ###
+
+## Pre ACLs
+
+# Bypass uRPF (RFC3704) checks
+create pre-no-uRPF		list:set size 8
+add pre-no-uRPF			pre-no-uRPF-v4
+add pre-no-uRPF			pre-no-uRPF-v6
+
+## Input ACLs
+
+# Allowed services
+create inp-allow		list:set size 8
+add inp-allow			inp-allow-v4
+add inp-allow			inp-allow-v6
+
+# Ratelimit access to service
+create inp-block		list:set size 8
+add inp-block			inp-block-v4
+add inp-block			inp-block-v6
+
+create inp-ratelimit		list:set size 8
+add inp-ratelimit		inp-ratelimit-v4
+add inp-ratelimit		inp-ratelimit-v6
+
+## Forward ACLs
+
+# Block packets to/from downlink
+create fwd-u2d-block-iif	list:set size 8
+add fwd-u2d-block-iif		fwd-u2d-block-iif-v4
+add fwd-u2d-block-iif		fwd-u2d-block-iif-v6
+
+create fwd-u2d-block-pkt	list:set size 8
+add fwd-u2d-block-pkt		fwd-u2d-block-pkt-v4
+add fwd-u2d-block-pkt		fwd-u2d-block-pkt-v6
+
+create fwd-d2u-block-oif	list:set size 8
+add fwd-d2u-block-oif		fwd-d2u-block-oif-v4
+add fwd-d2u-block-oif		fwd-d2u-block-oif-v6
+
+create fwd-d2u-block-pkt	list:set size 8
+add fwd-d2u-block-pkt		fwd-d2u-block-pkt-v4
+add fwd-d2u-block-pkt		fwd-d2u-block-pkt-v6
+
+create fwd-d2d-block-oif	list:set size 8
+add fwd-d2d-block-oif		fwd-d2d-block-oif-v4
+add fwd-d2d-block-oif		fwd-d2d-block-oif-v6
+
+create fwd-d2d-block-pkt	list:set size 8
+add fwd-d2d-block-pkt		fwd-d2d-block-pkt-v4
+add fwd-d2d-block-pkt		fwd-d2d-block-pkt-v6

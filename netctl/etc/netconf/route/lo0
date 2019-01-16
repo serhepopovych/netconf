@@ -1,0 +1,2 @@
+lo0_v4="local 0.0.0.0/0 dev lo table divert"
+lo0_v6="local ::/0 dev lo table divert"
