@@ -413,6 +413,37 @@ netconf_g6tusage()
 }
 
 ##
+## VXLAN
+##
+
+# Usage: netconf_vxup {<if_name>|<var_name>}
+netconf_vxup()
+{
+	netconf_ifup "$@"
+}
+
+# Usage: netconf_vxdown {<if_name>|<var_name>}
+netconf_vxdown()
+{
+	netconf_ifdown "$@"
+}
+
+# Usage: netconf_vxlist {<if_name>|<var_name>}
+netconf_vxlist()
+{
+	netconf_iflist "$@"
+}
+
+# Usage: netconf_vxusage [<action>] [<var_name_descr>]
+netconf_vxusage()
+{
+	nctl_log_msg 'usage: %s %s %s...\n' \
+		"$program_invocation_short_name" \
+		"${1:-vx\{up|down|list|usage\}}" \
+		"${2:-<vxlan_iface_name>}"
+}
+
+##
 ## VLAN
 ##
 
@@ -926,8 +957,8 @@ netconf_vrup()
 				nctl_is_empty_var 'netconf_ifb_list' &&
 					netconf_source 'ifb'
 				;;
-			br*|bond*|gtp*|g6tp*|gre*|g6re*)
-				## BRIDGE, BOND, GRETAP, IP6GRETAP, GRE, IP6GRE
+			br*|bond*|gtp*|g6tp*|vx*|gre*|g6re*)
+				## BRIDGE, BOND, GRETAP, IP6GRETAP, VXLAN, GRE, IP6GRE
 
 				nctl_log_msg 'x-netns for IFace %s not supported' "$u_if"
 				! :
@@ -1017,6 +1048,7 @@ netconf_vrup()
 		netconf_veth_dir="$u_netconf/veth" \
 		netconf_gretap_dir="$u_netconf/gretap" \
 		netconf_ip6gretap_dir="$u_netconf/ip6gretap" \
+		netconf_vxlan_dir="$u_netconf/vxlan" \
 		netconf_vlan_dir="$u_netconf/vlan" \
 		netconf_macvlan_dir="$u_netconf/macvlan" \
 		netconf_gre_dir="$u_netconf/gre" \
@@ -1087,6 +1119,7 @@ netconf_vrlist()
 		netconf_veth_dir="$u_dir/netconf/veth" \
 		netconf_gretap_dir="$u_dir/netconf/gretap" \
 		netconf_ip6gretap_dir="$u_dir/netconf/ip6gretap" \
+		netconf_vxlan_dir="$u_dir/netconf/vxlan" \
 		netconf_vlan_dir="$u_dir/netconf/vlan" \
 		netconf_macvlan_dir="$u_dir/netconf/macvlan" \
 		netconf_gre_dir="$u_dir/netconf/gre" \
@@ -1209,6 +1242,12 @@ netconf_source()
 				: ${netconf_ip6gretap_regex:="$NETCONF_IP6GRETAP_REGEX"}
 				: ${netconf_ip6gretap_regex_f:="$NETCONF_IP6GRETAP_REGEX_F"}
 				: ${netconf_ip6gretap_dir:="$NETCONF_IP6GRETAP_DIR"}
+				;;
+			'vxlan')
+				netconf_vxlan_list=()
+				: ${netconf_vxlan_regex:="$NETCONF_VXLAN_REGEX"}
+				: ${netconf_vxlan_regex_f:="$NETCONF_VXLAN_REGEX_F"}
+				: ${netconf_vxlan_dir:="$NETCONF_VXLAN_DIR"}
 				;;
 			'vlan')
 				netconf_vlan_list=()
@@ -1336,6 +1375,13 @@ declare -a netconf_ip6gretap_list
 declare netconf_ip6gretap_regex
 declare netconf_ip6gretap_regex_f
 declare netconf_ip6gretap_dir
+
+## VXLAN
+declare -a netconf_vxlan_list
+declare netconf_vxlan_regex
+declare netconf_vxlan_regex_f
+declare netconf_vxlan_dir
+
 
 ## VLAN
 declare -a netconf_vlan_list

@@ -24,6 +24,7 @@ declare -a crt1_request_tools_list=()
 #			 vzup|vzdown|vzlist|\
 #			 gtup|gtdown|gtlist|\
 #			 g6tup|g6tdown|g6tlist|\
+#			 vxup|vxdown|vxlist|\
 #			 vup|vdown|vlist|\
 #			 mvup|mvdown|mvlist|\
 #			 gup|gdown|glist|\
@@ -58,6 +59,9 @@ __netconf_action()
 
 			# Up IP6GRETAP
 			"$FUNCNAME" g6tup "${netconf_ip6gretap_list[@]}" || nctl_inc_rc rc
+
+			# Up VXLAN
+			"$FUNCNAME" vxup "${netconf_vxlan_list[@]}" || nctl_inc_rc rc
 
 			# Up VLAN
 			"$FUNCNAME" vup "${netconf_vlan_list[@]}" || nctl_inc_rc rc
@@ -114,6 +118,9 @@ __netconf_action()
 			# Down VLAN
 			"$FUNCNAME" vdown "${netconf_vlan_list[@]}" || nctl_inc_rc rc
 
+			# Down VXLAN
+			"$FUNCNAME" vxdown "${netconf_vxlan_list[@]}" || nctl_inc_rc rc
+
 			# Down IP6GRETAP
 			"$FUNCNAME" g6tdown "${netconf_ip6gretap_list[@]}" || nctl_inc_rc rc
 
@@ -158,6 +165,9 @@ __netconf_action()
 			# List IP6GRETAP
 			"$FUNCNAME" g6tlist "${netconf_ip6gretap_list[@]}" || nctl_inc_rc rc
 
+			# List VXLAN
+			"$FUNCNAME" vxlist "${netconf_vxlan_list[@]}" || nctl_inc_rc rc
+
 			# List VLAN
 			"$FUNCNAME" vlist "${netconf_vlan_list[@]}" || nctl_inc_rc rc
 
@@ -191,6 +201,7 @@ __netconf_action()
 		vzup|vzdown|vzlist|\
 		gtup|gtdown|gtlist|\
 		g6tup|g6tdown|g6tlist|\
+		vxup|vxdown|vxlist|\
 		vup|vdown|vlist|\
 		mvup|mvdown|mvlist|\
 		gup|gdown|glist|\
@@ -233,7 +244,7 @@ usage()
 {
 	printf >&$NCTL_STDERR \
 'usage: %s {start|stop|restart|list} [bridge|bond|dummy|veth|gretap|ip6gretap|
-	vlan|macvlan|gre|ip6gre|ifb|neighbour|route|rule|vr] ...
+	vxlan|vlan|macvlan|gre|ip6gre|ifb|neighbour|route|rule|vr] ...
 
        %s {brup|brdown|brlist}    {bridge interface|help|usage} ...
 
@@ -246,6 +257,8 @@ usage()
        %s {gtup|gtdown|gtlist}    {gretap interface|help|usage} ...
 
        %s {g6tup|g6tdown|g6tlist} {ip6gretap interface|help|usage} ...
+
+       %s {vxup|vxdown|vxlist}    {vxlan interface|help|usage} ...
 
        %s {vup|vdown|vlist}       {vlan interface|help|usage} ...
 
@@ -280,6 +293,7 @@ usage()
   "$program_invocation_short_name" \
   "$program_invocation_short_name" \
   "$program_invocation_short_name" \
+  "$program_invocation_short_name" \
   #
 
 	exit $NCTL_EXIT_FAILURE
@@ -293,7 +307,7 @@ declare -a netconf_argv
 # See how we were called
 case "$NETCONF_ACTION" in
 	start|stop|restart|list)
-		# Load BRIDGE, BOND, DUMMY, IFB, VETH, GRETAP, IP6GRETAP, VLAN,
+		# Load BRIDGE, BOND, DUMMY, IFB, VETH, GRETAP, IP6GRETAP, VXLAN, VLAN,
 		# MACVLAN, GRE, IP6GRE, NEIGHBOUR, ROUTE, RULE and VR configs
 		netconf_argv=("$@")
 		if nctl_is_var_of_empty netconf_argv; then
@@ -304,6 +318,7 @@ case "$NETCONF_ACTION" in
 				'veth'
 				'gretap'
 				'ip6gretap'
+				'vxlan'
 				'vlan'
 				'macvlan'
 				'gre'
@@ -340,6 +355,10 @@ case "$NETCONF_ACTION" in
 	g6tup|g6tdown|g6tlist)
 		# Load only IP6GRETAP related configs
 		netconf_argv=('ip6gretap')
+		;;
+	vxup|vxdown|vxlist)
+		# Load only VXLAN related configs
+		netconf_argv=('vxlan')
 		;;
 	vup|vdown|vlist)
 		# Load only VLAN related configs
