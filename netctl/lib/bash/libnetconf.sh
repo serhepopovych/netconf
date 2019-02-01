@@ -309,6 +309,37 @@ netconf_bnusage()
 }
 
 ##
+## PHYS
+##
+
+# Usage: netconf_phup {<if_name>|<var_name>}
+netconf_phup()
+{
+	netconf_ifup "$@"
+}
+
+# Usage: netconf_phdown {<if_name>|<var_name>}
+netconf_phdown()
+{
+	netconf_ifdown "$@"
+}
+
+# Usage: netconf_phlist {<if_name>|<var_name>}
+netconf_phlist()
+{
+	netconf_iflist "$@"
+}
+
+# Usage: netconf_phusage [<action>] [<var_name_descr>]
+netconf_phusage()
+{
+	nctl_log_msg 'usage: %s %s %s...\n' \
+		"$program_invocation_short_name" \
+		"${1:-ph\{up|down|list|usage\}}" \
+		"${2:-<phys_iface_name>}"
+}
+
+##
 ## DUMMY
 ##
 
@@ -944,6 +975,13 @@ netconf_vrup()
 				nctl_is_empty_var 'netconf_vlan_list' &&
 					netconf_source 'vlan'
 				;;
+			en*|eth*)
+				## PHYS
+
+				# Load configuration if not already done
+				nctl_is_empty_var 'netconf_phys_list' &&
+					netconf_source 'phys'
+				;;
 			dmy*|lo*)
 				## DUMMY
 
@@ -1064,6 +1102,7 @@ netconf_vrup()
 		NCTL_LOG_FILE=n \
 		netconf_bridge_dir="$u_netconf/bridge" \
 		netconf_bond_dir="$u_netconf/bond" \
+		netconf_phys_dir="$u_netconf/phys" \
 		netconf_dummy_dir="$u_netconf/dummy" \
 		netconf_veth_dir="$u_netconf/veth" \
 		netconf_gretap_dir="$u_netconf/gretap" \
@@ -1135,6 +1174,7 @@ netconf_vrlist()
 		NCTL_LOG_FILE=n \
 		netconf_bridge_dir="$u_dir/netconf/bridge" \
 		netconf_bond_dir="$u_dir/netconf/bond" \
+		netconf_phys_dir="$u_dir/netconf/phys" \
 		netconf_dummy_dir="$u_dir/netconf/dummy" \
 		netconf_veth_dir="$u_dir/netconf/veth" \
 		netconf_gretap_dir="$u_dir/netconf/gretap" \
@@ -1238,6 +1278,12 @@ netconf_source()
 				: ${netconf_bond_regex:="$NETCONF_BOND_REGEX"}
 				: ${netconf_bond_regex_f:="$NETCONF_BOND_REGEX_F"}
 				: ${netconf_bond_dir:="$NETCONF_BOND_DIR"}
+				;;
+			'phys')
+				netconf_phys_list=()
+				: ${netconf_phys_regex:="$NETCONF_PHYS_REGEX"}
+				: ${netconf_phys_regex_f:="$NETCONF_PHYS_REGEX_F"}
+				: ${netconf_phys_dir:="$NETCONF_PHYS_DIR"}
 				;;
 			'dummy')
 				netconf_dummy_list=()
@@ -1371,6 +1417,12 @@ declare -a netconf_bond_list
 declare netconf_bond_regex
 declare netconf_bond_regex_f
 declare netconf_bond_dir
+
+## PHYS
+declare -a netconf_phys_list
+declare netconf_phys_regex
+declare netconf_phys_regex_f
+declare netconf_phys_dir
 
 ## DUMMY
 declare -a netconf_dummy_list
