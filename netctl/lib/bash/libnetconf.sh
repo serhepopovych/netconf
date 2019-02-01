@@ -146,23 +146,38 @@ netconf_ifup()
 
 			u_if="${u_if%:*}"
 			ip addr replace dev "$u_if" "$@" 2>&1 |nctl_log_pipe
+			nctl_get_rc
+			# nothing to configure
+			return
+			;;
+		*@*)
+			## Existing interface (e.g. physical)
+
+			local u_if_old_name="${u_if#*@}"
+			ip link set dev "$u_if_old_name" "$@" 2>&1 |nctl_log_pipe
 			nctl_get_rc || return
+			local u_if_new_name="${u_if%@*}"
+			u_if="${u_if_new_name:-$u_if_old_name}"
 			;;
 		*)
-			## Link
+			## Non-existing interface (e.g. veth, vlan, gre, ...)
 
 			ip link replace dev "$u_if" up "$@" 2>&1 |nctl_log_pipe
 			nctl_get_rc || return
-
-			sysctl_file="/netctl/etc/netconf/sysctl.d/$u_if"
-			if [ -f "$sysctl_file" -a -s "$sysctl_file" ]; then
-				sysctl -q \
-					--pattern="^net[./]ipv[46][./](conf|neigh)[./]$u_if[./].+" \
-					--load="$sysctl_file" 2>&1 |nctl_log_pipe
-				nctl_get_rc || return
-			fi
 			;;
 	esac
+
+	# Make sure interface created
+	[ -e "$NCTL_SCN_DIR/$u_if" ] || return
+
+	# Apply sysctl(8) settings
+	local sysctl_file="/netctl/etc/netconf/sysctl.d/$u_if"
+	if [ -f "$sysctl_file" -a -s "$sysctl_file" ]; then
+		sysctl -q \
+			--pattern="^net[./]ipv[46][./](conf|neigh)[./]$u_if[./].+" \
+			--load="$sysctl_file" 2>&1 |nctl_log_pipe
+		nctl_get_rc || return
+	fi
 }
 declare -fr netconf_ifup
 
@@ -197,7 +212,12 @@ netconf_ifdown()
 		*)
 			## Link
 
-			if [ -e "$NCTL_SCN_DIR/$u_if" ]; then
+			local u_if_old_name="${u_if#*@}"
+			local u_if_new_name="${u_if%@*}"
+			u_if="${u_if_new_name:-$u_if_old_name}"
+
+			local u_if_scn="$NCTL_SCN_DIR/$u_if"
+			if [ -e "$u_if_scn" -a ! -e "$u_if_scn/device" ]; then
 				ip link del dev "$u_if" 2>&1 |nctl_log_pipe
 				nctl_get_rc || return
 			fi

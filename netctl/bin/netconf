@@ -224,8 +224,17 @@ __netconf_action()
 					;;
 				*)
 					# Do action
-					nctl_action_for_each "netconf_$action" "$@" ||
+					local item refs addrs
+
+					for item in "$@"; do
+						eval refs="\${!${item}_ref*}"
+						# for compatibility only
+						eval addrs="\${!${item}_a*}"
+						nctl_action_for_each \
+							"netconf_$action" \
+							"$item" $refs $addrs ||
 						nctl_inc_rc rc
+					done
 					;;
 			esac
 			;;
