@@ -248,6 +248,37 @@ netconf_iflist()
 declare -fr netconf_iflist
 
 ##
+## VRF
+##
+
+# Usage: netconf_vfup {<if_name>|<var_name>}
+netconf_vfup()
+{
+	netconf_ifup "$@"
+}
+
+# Usage: netconf_vfdown {<if_name>|<var_name>}
+netconf_vfdown()
+{
+	netconf_ifdown "$@"
+}
+
+# Usage: netconf_vflist {<if_name>|<var_name>}
+netconf_vflist()
+{
+	netconf_iflist "$@"
+}
+
+# Usage: netconf_vfusage [<action>] [<var_name_descr>]
+netconf_vfusage()
+{
+	nctl_log_msg 'usage: %s %s %s...\n' \
+		"$program_invocation_short_name" \
+		"${1:-vf\{up|down|list|usage\}}" \
+		"${2:-<vrf_iface_name>}"
+}
+
+##
 ## BRIDGE
 ##
 
@@ -1080,8 +1111,8 @@ netconf_vrup()
 				nctl_is_empty_var 'netconf_ifb_list' &&
 					netconf_source 'ifb'
 				;;
-			br*|bond*|gtp*|g6tp*|vx*|gre*|g6re*)
-				## BRIDGE, BOND, GRETAP, IP6GRETAP, VXLAN, GRE, IP6GRE
+			vrf*|br*|bond*|gtp*|g6tp*|vx*|gre*|g6re*)
+				## VRF, BRIDGE, BOND, GRETAP, IP6GRETAP, VXLAN, GRE, IP6GRE
 
 				nctl_log_msg 'x-netns for IFace %s not supported' "$u_if"
 				! :
@@ -1165,6 +1196,7 @@ netconf_vrup()
 			u_netconf="$u_netconf_vr"
 
 		NCTL_LOG_FILE=n \
+		netconf_vrf_dir="$u_netconf/vrf" \
 		netconf_bridge_dir="$u_netconf/bridge" \
 		netconf_bond_dir="$u_netconf/bond" \
 		netconf_phys_dir="$u_netconf/phys" \
@@ -1238,6 +1270,7 @@ netconf_vrlist()
 	{
 		NCTL_LOG_PREFIX_NONE=y \
 		NCTL_LOG_FILE=n \
+		netconf_vrf_dir="$u_dir/netconf/vrf" \
 		netconf_bridge_dir="$u_dir/netconf/bridge" \
 		netconf_bond_dir="$u_dir/netconf/bond" \
 		netconf_phys_dir="$u_dir/netconf/phys" \
@@ -1334,6 +1367,12 @@ netconf_source()
 		# to overwrite defaults to starting only parts from the facility
 		# (e.g. only start vlan 100).
 		case "$ns_v_name" in
+			'vrf')
+				netconf_vrf_list=()
+				: ${netconf_vrf_regex:="$NETCONF_VRF_REGEX"}
+				: ${netconf_vrf_regex_f:="$NETCONF_VRF_REGEX_F"}
+				: ${netconf_vrf_dir:="$NETCONF_VRF_DIR"}
+				;;
 			'bridge')
 				netconf_bridge_list=()
 				: ${netconf_bridge_regex:="$NETCONF_BRIDGE_REGEX"}
@@ -1478,6 +1517,12 @@ declare -fr netconf_source
 ################################################################################
 
 ### Global variable namespace
+
+## VRF
+declare -a netconf_vrf_list
+declare netconf_vrf_regex
+declare netconf_vrf_regex_f
+declare netconf_vrf_dir
 
 ## BRIDGE
 declare -a netconf_bridge_list

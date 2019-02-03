@@ -18,6 +18,7 @@ declare -a crt1_request_tools_list=()
 . /netctl/lib/bash/libprocess.sh
 
 # Usage: __netconf_action {start|stop|restart|list|\
+#			 vfup|vfdown|vflist|\
 #			 brup|brdown|brlist|\
 #			 bnup|bndown|bnlist|\
 #			 phup|phdown|phlist|\
@@ -44,6 +45,9 @@ __netconf_action()
 
 	case "$action" in
 		start)
+			# Up VRF
+			"$FUNCNAME" vfup "${netconf_vrf_list[@]}" || nctl_inc_rc rc
+
 			# Up BRIDGE
 			"$FUNCNAME" brup "${netconf_bridge_list[@]}" || nctl_inc_rc rc
 
@@ -152,6 +156,9 @@ __netconf_action()
 
 			# Down BRIDGE
 			"$FUNCNAME" brdown "${netconf_bridge_list[@]}" || nctl_inc_rc rc
+
+			# Down VRF
+			"$FUNCNAME" vfdown "${netconf_vrf_list[@]}" || nctl_inc_rc rc
 			;;
 		restart)
 			"$FUNCNAME" stop
@@ -161,6 +168,9 @@ __netconf_action()
 			"$FUNCNAME" start
 			;;
 		list)
+			# List VRF
+			"$FUNCNAME" vflist "${netconf_vrf_list[@]}" || nctl_inc_rc rc
+
 			# List BRIDGE
 			"$FUNCNAME" brlist "${netconf_bridge_list[@]}" || nctl_inc_rc rc
 
@@ -215,6 +225,7 @@ __netconf_action()
 			# List VR
 			"$FUNCNAME" vrlist "${netconf_vr_list[@]}" || nctl_inc_rc rc
 			;;
+		vfup|vfdown|vflist|\
 		brup|brdown|brlist|\
 		bnup|bndown|bnlist|\
 		phup|phdown|phlist|\
@@ -274,8 +285,11 @@ __netconf_action()
 usage()
 {
 	printf >&$NCTL_STDERR \
-'usage: %s {start|stop|restart|list} [bridge|bond|physical|dummy|veth|gretap|ip6gretap|
-	vxlan|vlan|macvlan|gre|ip6gre|ifb|ethtool|neighbour|route|rule|vr] ...
+'usage: %s {start|stop|restart|list} [vrf|bridge|bond|physical|dummy|veth|
+	gretap|ip6gretap|vxlan|vlan|macvlan|gre|ip6gre|ifb|
+	ethtool|neighbour|route|rule|vr] ...
+
+       %s {vfup|vfdown|vflist}    {vrf interface|help|usage} ...
 
        %s {brup|brdown|brlist}    {bridge interface|help|usage} ...
 
@@ -331,6 +345,7 @@ usage()
   "$program_invocation_short_name" \
   "$program_invocation_short_name" \
   "$program_invocation_short_name" \
+  "$program_invocation_short_name" \
   #
 
 	exit $NCTL_EXIT_FAILURE
@@ -344,12 +359,13 @@ declare -a netconf_argv
 # See how we were called
 case "$NETCONF_ACTION" in
 	start|stop|restart|list)
-		# Load BRIDGE, BOND, PHYS, DUMMY, IFB, VETH, GRETAP, IP6GRETAP,
-		# VXLAN, VLAN, MACVLAN, GRE, IP6GRE, NEIGHBOUR, ROUTE, ETHTOOL,
-		# RULE and VR configs
+		# Load VRF, BRIDGE, BOND, PHYS, DUMMY, VETH,
+		# GRETAP, IP6GRETAP, VXLAN, VLAN, MACVLAN, GRE, IP6GRE,
+		# IFB, ETHTOOL, NEIGHBOUR, ROUTE, RULE and VR configs
 		netconf_argv=("$@")
 		if nctl_is_var_of_empty netconf_argv; then
 			netconf_argv=(
+				'vrf'
 				'bridge'
 				'bond'
 				'phys'
@@ -371,6 +387,10 @@ case "$NETCONF_ACTION" in
 			)
 		fi
 		set --
+		;;
+	vfup|vfdown|vflist)
+		# Load only VRF related configs
+		netconf_argv=('vrf')
 		;;
 	brup|brdown|brlist)
 		# Load only BRIDGE related configs
