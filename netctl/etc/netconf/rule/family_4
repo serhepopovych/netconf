@@ -1,2 +1,2 @@
-family_4_pref_0x7f10="-4 0x7f10 fwmark 0x7f100000/0xfff10000 table divert"
+family_4_pref_0x310="-4 0x310 fwmark 0x03100000/0xfff10000 table divert"
 family_4_pref_0x7fe0="-4 0x7fe0 table inet"
