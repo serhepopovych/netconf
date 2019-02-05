@@ -7,6 +7,7 @@ declare -r __included_libnetconf=1
 # even if empty (e.g.: declare -a crt1_request_tools_list=())
 declare -a crt1_request_tools_list=(
 	'ip'			# ip(8)
+	'tc'			# tc(8)
 	'sort'			# sort(1)
 	'find'			# find(1)
 	'sed'			# sed(1)
@@ -160,6 +161,16 @@ netconf_ifup()
 			local u_if_new_name="${u_if%@*}"
 			u_if="${u_if_new_name:-$u_if_old_name}"
 			;;
+		*+*)
+			## Traffic control
+
+			local u_if_object="${u_if%+*}"
+			u_if="${u_if#*+}"
+			tc "$u_if_object" replace dev "$u_if" "$@" 2>&1 |nctl_log_pipe
+			nctl_get_rc
+			# nothing to configure
+			return
+			;;
 		*)
 			## Non-existing interface (e.g. veth, vlan, gre, ...)
 
@@ -209,6 +220,9 @@ netconf_ifdown()
 				ip addr del dev "$u_if" "$u_ip" 2>&1 |nctl_log_pipe
 				nctl_get_rc || return
 			fi
+			;;
+		*+*)
+			## No-op
 			;;
 		*)
 			## Link
