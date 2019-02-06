@@ -475,5 +475,9 @@ nctl_SourceIfNotEmpty "$NCTL_PREFIX/etc/netconf.conf"
 # Source netconf library.
 . /netctl/lib/bash/libnetconf.sh "${netconf_argv[@]}" || usage
 
+# Make command line items we operate valid shell variable names
+set -- "${@//[^[:alnum:]_]/_}"
+set -- "${@/#[[:digit:]]/_}"
+
 # Execute action
 "$netconf_action" "$NETCONF_ACTION" "$@"

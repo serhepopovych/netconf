@@ -125,15 +125,13 @@ declare -fr netconf_get_val
 # Path to /[s]ys/[c]lass/[n]et directory.
 declare -r NCTL_SCN_DIR="$NCTL_SYS_DIR/class/net"
 
-# Usage: netconf_ifup {<if_name>|<var_name>}
+# Usage: netconf_ifup {<var_name>}
 netconf_ifup()
 {
 	# Account actions
 	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
 
 	local var_name="$1"
-	var_name="${var_name//\./_}"
-	var_name="${var_name//:/_a}"
 
 	local val
 	netconf_get_val "$var_name" val || return
@@ -193,15 +191,13 @@ netconf_ifup()
 }
 declare -fr netconf_ifup
 
-# Usage: netconf_ifdown {<if_name>|<var_name>}
+# Usage: netconf_ifdown {<var_name>}
 netconf_ifdown()
 {
 	# Account actions
 	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
 
 	local var_name="$1"
-	var_name="${var_name//\./_}"
-	var_name="${var_name//:/_a}"
 
 	local val
 	netconf_get_val "$var_name" val || return
@@ -241,15 +237,13 @@ netconf_ifdown()
 }
 declare -fr netconf_ifdown
 
-# Usage: netconf_iflist {<if_name>|<var_name>}
+# Usage: netconf_iflist {<var_name>}
 netconf_iflist()
 {
 	# Account actions
 	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
 
 	local var_name="$1"
-	var_name="${var_name//\./_}"
-	var_name="${var_name//:/_a}"
 
 	local val
 	netconf_get_val "$var_name" val || return
@@ -265,19 +259,19 @@ declare -fr netconf_iflist
 ## VRF
 ##
 
-# Usage: netconf_vfup {<if_name>|<var_name>}
+# Usage: netconf_vfup {<var_name>}
 netconf_vfup()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_vfdown {<if_name>|<var_name>}
+# Usage: netconf_vfdown {<var_name>}
 netconf_vfdown()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_vflist {<if_name>|<var_name>}
+# Usage: netconf_vflist {<var_name>}
 netconf_vflist()
 {
 	netconf_iflist "$@"
@@ -296,19 +290,19 @@ netconf_vfusage()
 ## BRIDGE
 ##
 
-# Usage: netconf_brup {<if_name>|<var_name>}
+# Usage: netconf_brup {<var_name>}
 netconf_brup()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_brdown {<if_name>|<var_name>}
+# Usage: netconf_brdown {<var_name>}
 netconf_brdown()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_brlist {<if_name>|<var_name>}
+# Usage: netconf_brlist {<var_name>}
 netconf_brlist()
 {
 	netconf_iflist "$@"
@@ -327,19 +321,19 @@ netconf_brusage()
 ## BOND
 ##
 
-# Usage: netconf_bnup {<if_name>|<var_name>}
+# Usage: netconf_bnup {<var_name>}
 netconf_bnup()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_bndown {<if_name>|<var_name>}
+# Usage: netconf_bndown {<var_name>}
 netconf_bndown()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_bnlist {<if_name>|<var_name>}
+# Usage: netconf_bnlist {<var_name>}
 netconf_bnlist()
 {
 	netconf_iflist "$@"
@@ -358,19 +352,19 @@ netconf_bnusage()
 ## PHYS
 ##
 
-# Usage: netconf_phup {<if_name>|<var_name>}
+# Usage: netconf_phup {<var_name>}
 netconf_phup()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_phdown {<if_name>|<var_name>}
+# Usage: netconf_phdown {<var_name>}
 netconf_phdown()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_phlist {<if_name>|<var_name>}
+# Usage: netconf_phlist {<var_name>}
 netconf_phlist()
 {
 	netconf_iflist "$@"
@@ -389,19 +383,19 @@ netconf_phusage()
 ## DUMMY
 ##
 
-# Usage: netconf_dmup {<if_name>|<var_name>}
+# Usage: netconf_dmup {<var_name>}
 netconf_dmup()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_dmdown {<if_name>|<var_name>}
+# Usage: netconf_dmdown {<var_name>}
 netconf_dmdown()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_dmlist {<if_name>|<var_name>}
+# Usage: netconf_dmlist {<var_name>}
 netconf_dmlist()
 {
 	netconf_iflist "$@"
@@ -420,19 +414,19 @@ netconf_dmusage()
 ## VETH
 ##
 
-# Usage: netconf_vzup {<if_name>|<var_name>}
+# Usage: netconf_vzup {<var_name>}
 netconf_vzup()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_vzdown {<if_name>|<var_name>}
+# Usage: netconf_vzdown {<var_name>}
 netconf_vzdown()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_vzlist {<if_name>|<var_name>}
+# Usage: netconf_vzlist {<var_name>}
 netconf_vzlist()
 {
 	netconf_iflist "$@"
@@ -451,19 +445,19 @@ netconf_vzusage()
 ## GRETAP
 ##
 
-# Usage: netconf_gtup {<if_name>|<var_name>}
+# Usage: netconf_gtup {<var_name>}
 netconf_gtup()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_gtdown {<if_name>|<var_name>}
+# Usage: netconf_gtdown {<var_name>}
 netconf_gtdown()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_gtlist {<if_name>|<var_name>}
+# Usage: netconf_gtlist {<var_name>}
 netconf_gtlist()
 {
 	netconf_iflist "$@"
@@ -482,19 +476,19 @@ netconf_gtusage()
 ## IP6GRETAP
 ##
 
-# Usage: netconf_g6tup {<if_name>|<var_name>}
+# Usage: netconf_g6tup {<var_name>}
 netconf_g6tup()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_g6tdown {<if_name>|<var_name>}
+# Usage: netconf_g6tdown {<var_name>}
 netconf_g6tdown()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_g6tlist {<if_name>|<var_name>}
+# Usage: netconf_g6tlist {<var_name>}
 netconf_g6tlist()
 {
 	netconf_iflist "$@"
@@ -513,19 +507,19 @@ netconf_g6tusage()
 ## VXLAN
 ##
 
-# Usage: netconf_vxup {<if_name>|<var_name>}
+# Usage: netconf_vxup {<var_name>}
 netconf_vxup()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_vxdown {<if_name>|<var_name>}
+# Usage: netconf_vxdown {<var_name>}
 netconf_vxdown()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_vxlist {<if_name>|<var_name>}
+# Usage: netconf_vxlist {<var_name>}
 netconf_vxlist()
 {
 	netconf_iflist "$@"
@@ -544,19 +538,19 @@ netconf_vxusage()
 ## VLAN
 ##
 
-# Usage: netconf_vup {<if_name>|<var_name>}
+# Usage: netconf_vup {<var_name>}
 netconf_vup()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_vdown {<if_name>|<var_name>}
+# Usage: netconf_vdown {<var_name>}
 netconf_vdown()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_vlist {<if_name>|<var_name>}
+# Usage: netconf_vlist {<var_name>}
 netconf_vlist()
 {
 	netconf_iflist "$@"
@@ -575,19 +569,19 @@ netconf_vusage()
 ## MACVLAN
 ##
 
-# Usage: netconf_mvup {<if_name>|<var_name>}
+# Usage: netconf_mvup {<var_name>}
 netconf_mvup()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_mvdown {<if_name>|<var_name>}
+# Usage: netconf_mvdown {<var_name>}
 netconf_mvdown()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_mvlist {<if_name>|<var_name>}
+# Usage: netconf_mvlist {<var_name>}
 netconf_mvlist()
 {
 	netconf_iflist "$@"
@@ -606,19 +600,19 @@ netconf_mvusage()
 ## GRE
 ##
 
-# Usage: netconf_gup {<if_name>|<var_name>}
+# Usage: netconf_gup {<var_name>}
 netconf_gup()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_gdown {<if_name>|<var_name>}
+# Usage: netconf_gdown {<var_name>}
 netconf_gdown()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_glist {<if_name>|<var_name>}
+# Usage: netconf_glist {<var_name>}
 netconf_glist()
 {
 	netconf_iflist "$@"
@@ -637,19 +631,19 @@ netconf_gusage()
 ## IP6GRE
 ##
 
-# Usage: netconf_g6rup {<if_name>|<var_name>}
+# Usage: netconf_g6rup {<var_name>}
 netconf_g6up()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_g6down {<if_name>|<var_name>}
+# Usage: netconf_g6down {<var_name>}
 netconf_g6down()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_g6list {<if_name>|<var_name>}
+# Usage: netconf_g6list {<var_name>}
 netconf_g6list()
 {
 	netconf_iflist "$@"
@@ -668,19 +662,19 @@ netconf_g6usage()
 ## IFB
 ##
 
-# Usage: netconf_ibup {<if_name>|<var_name>}
+# Usage: netconf_ibup {<var_name>}
 netconf_ibup()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_ibdown {<if_name>|<var_name>}
+# Usage: netconf_ibdown {<var_name>}
 netconf_ibdown()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_iblist {<if_name>|<var_name>}
+# Usage: netconf_iblist {<var_name>}
 netconf_iblist()
 {
 	netconf_iflist "$@"
@@ -1047,7 +1041,6 @@ netconf_vrup()
 	local u_name u_if u_dir u_dir_netns u_rules
 
 	local var_name="$1"
-	var_name="${var_name//-/_}"
 
 	local val
 	netconf_get_val "$var_name" val ||
@@ -1116,7 +1109,7 @@ netconf_vrup()
 				# Destroy it first, as it might be up and
 				# configuring parameters like link-layer address
 				# might fail.
-				netconf_ifdown "$u_if"
+				netconf_ifdown "${u_if//[^[:alnum:]_]/_}"
 				;;
 			ifb*)
 				## IFB
@@ -1143,7 +1136,7 @@ netconf_vrup()
 		esac
 
 		# Up interface
-		netconf_ifup "$u_if"
+		netconf_ifup "${u_if//[^[:alnum:]_]/_}"
 
 		# Move interface to VR
 		ip link set dev "$u_if" netns "$u_name" 2>&1 |nctl_log_pipe
@@ -1244,7 +1237,6 @@ netconf_vrdown()
 	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
 
 	local var_name="$1"
-	var_name="${var_name//-/_}"
 
 	local val
 	netconf_get_val "$var_name" val || return
@@ -1267,7 +1259,6 @@ netconf_vrlist()
 	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
 
 	local var_name="$1"
-	var_name="${var_name//-/_}"
 
 	local val
 	netconf_get_val "$var_name" val || return
