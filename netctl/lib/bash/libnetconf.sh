@@ -160,6 +160,13 @@ netconf_ifup()
 			u_if="${u_if#*+}"
 			tc "$u_if_object" replace dev "$u_if" "$@" 2>&1 |nctl_log_pipe
 			;;
+		*-*)
+			## Ethtool settings
+
+			local u_if_object="${u_if#*-}"
+			u_if="${u_if%%-*}"
+			ethtool "-$u_if_object" "$u_if" "$@" 2>&1 |NCTL_LOG_STD=n nctl_log_pipe
+			;;
 		*=*)
 			## Sysctl settings
 
@@ -204,6 +211,9 @@ netconf_ifdown()
 			;;
 		*+*)
 			## Traffic control
+			;;
+		*-*)
+			## Ethtool settings
 			;;
 		*=*)
 			## Sysctl settings
@@ -680,70 +690,6 @@ netconf_ibusage()
 }
 
 ##
-## ETHTOOL
-##
-
-# Usage: netconf_etup <var_name>
-netconf_etup()
-{
-	# Account actions
-	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
-
-	local var_name="$1"
-
-	local val
-	netconf_get_val "$var_name" val || return
-
-	eval set -- $val
-
-	ethtool "$@" 2>&1 |nctl_log_pipe
-	nctl_get_rc
-}
-
-# Usage: netconf_etdown <var_name>
-netconf_etdown()
-{
-	# Account actions
-	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
-
-	local var_name="$1"
-
-	local val
-	netconf_get_val "$var_name" val || return
-
-	eval set -- $val
-
-	# No-op here
-	:
-}
-
-# Usage: netconf_etlist <var_name>
-netconf_etlist()
-{
-	# Account actions
-	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
-
-	local var_name="$1"
-
-	local val
-	netconf_get_val "$var_name" val || return
-
-	set -- $val
-
-	printf '%s="%s"\n' "$var_name" "$*" 2>&1 |nctl_log_pipe
-	nctl_get_rc
-}
-
-# Usage: netconf_etusage [<action>] [<var_name_descr>]
-netconf_etusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-et\{up|down|list|usage\}}" \
-		"${2:-<ethtool_iface_name>}"
-}
-
-##
 ## NEIGHBOUR
 ##
 
@@ -1207,7 +1153,6 @@ netconf_vrup()
 		netconf_gre_dir="$u_netconf/gre" \
 		netconf_ip6gre_dir="$u_netconf/ip6gre" \
 		netconf_ifb_dir="$u_netconf/ifb" \
-		netconf_ethtool_dir="$u_netconf/ethtool" \
 		netconf_neighbour_dir="$u_netconf/neighbour" \
 		netconf_route_dir="$u_netconf/route" \
 		netconf_rule_dir="$u_netconf/rule" \
@@ -1279,7 +1224,6 @@ netconf_vrlist()
 		netconf_gre_dir="$u_dir/netconf/gre" \
 		netconf_ip6gre_dir="$u_dir/netconf/ip6gre" \
 		netconf_ifb_dir="$u_dir/netconf/ifb" \
-		netconf_ethtool_dir="$u_dir/netconf/ethtool" \
 		netconf_neighbour_dir="$u_dir/netconf/neighbour" \
 		netconf_route_dir="$u_dir/netconf/route" \
 		netconf_rule_dir="$u_dir/netconf/rule" \
@@ -1446,12 +1390,6 @@ netconf_source()
 				: ${netconf_ifb_regex_f:="$NETCONF_IFB_REGEX_F"}
 				: ${netconf_ifb_dir:="$NETCONF_IFB_DIR"}
 				;;
-			'ethtool')
-				netconf_ethtool_list=()
-				: ${netconf_ethtool_regex:="$NETCONF_ETHTOOL_REGEX"}
-				: ${netconf_ethtool_regex_f:="$NETCONF_ETHTOOL_REGEX_F"}
-				: ${netconf_ethtool_dir:="$NETCONF_ETHTOOL_DIR"}
-				;;
 			'neighbour')
 				netconf_neighbour_list=()
 				: ${netconf_neighbour_regex:="$NETCONF_NEIGHBOUR_REGEX"}
@@ -1597,12 +1535,6 @@ declare -a netconf_ifb_list
 declare netconf_ifb_regex
 declare netconf_ifb_regex_f
 declare netconf_ifb_dir
-
-## ETHTOOL
-declare -a netconf_ethtool_list
-declare netconf_ethtool_regex
-declare netconf_ethtool_regex_f
-declare netconf_ethtool_dir
 
 ## NEIGHBOUR
 declare -a netconf_neighbour_list

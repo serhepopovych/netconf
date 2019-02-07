@@ -32,7 +32,6 @@ declare -a crt1_request_tools_list=()
 #			 gup|gdown|glist|\
 #			 g6up|g6down|g6list|\
 #			 ibup|ibdown|iblist|\
-#			 etup|etdown|etlist|\
 #			 ngup|ngdown|nglist|\
 #			 rtup|rtdown|rtlist|\
 #			 reup|redown|relist|\
@@ -87,9 +86,6 @@ __netconf_action()
 			# Up IFB
 			"$FUNCNAME" ibup "${netconf_ifb_list[@]}" || nctl_inc_rc rc
 
-			# Up ETHTOOL
-			"$FUNCNAME" etup "${netconf_ethtool_list[@]}" || nctl_inc_rc rc
-
 			# Up NEIGHBOUR
 			"$FUNCNAME" ngup "${netconf_neighbour_list[@]}" || nctl_inc_rc rc
 
@@ -114,9 +110,6 @@ __netconf_action()
 
 			# Down NEIGHBOUR
 			"$FUNCNAME" ngdown "${netconf_neighbour_list[@]}" || nctl_inc_rc rc
-
-			# Down ETHTOOL
-			"$FUNCNAME" etdown "${netconf_ethtool_list[@]}" || nctl_inc_rc rc
 
 			# Down IFB
 			"$FUNCNAME" ibdown "${netconf_ifb_list[@]}" || nctl_inc_rc rc
@@ -210,9 +203,6 @@ __netconf_action()
 			# List IFB
 			"$FUNCNAME" iblist "${netconf_ifb_list[@]}" || nctl_inc_rc rc
 
-			# List ETHTOOL
-			"$FUNCNAME" etlist "${netconf_ethtool_list[@]}" || nctl_inc_rc rc
-
 			# List NEIGHBOUR
 			"$FUNCNAME" nglist "${netconf_neighbour_list[@]}" || nctl_inc_rc rc
 
@@ -239,7 +229,6 @@ __netconf_action()
 		gup|gdown|glist|\
 		g6up|g6down|g6list|\
 		ibup|ibdown|iblist|\
-		etup|etdown|etlist|\
 		ngup|ngdown|nglist|\
 		rtup|rtdown|rtlist|\
 		reup|redown|relist|\
@@ -287,7 +276,7 @@ usage()
 	printf >&$NCTL_STDERR \
 'usage: %s {start|stop|restart|list} [vrf|bridge|bond|physical|dummy|veth|
 	gretap|ip6gretap|vxlan|vlan|macvlan|gre|ip6gre|ifb|
-	ethtool|neighbour|route|rule|vr] ...
+	neighbour|route|rule|vr] ...
 
        %s {vfup|vfdown|vflist}    {vrf interface|help|usage} ...
 
@@ -317,8 +306,6 @@ usage()
 
        %s {ibup|ibdown|iblist}    {ifb interface|help|usage} ...
 
-       %s {etup|etdown|etlist}    {ethtool interface|help|usage} ...
-
        %s {ngup|ngdown|nglist}    {neighbour name|help|usage} ...
 
        %s {rtup|rtdown|rtlist}    {route name|help|usage} ...
@@ -327,7 +314,6 @@ usage()
 
        %s {vrup|vrdown|vrlist}    {virtual router name|help|usage} ...
 ' "$program_invocation_short_name" \
-  "$program_invocation_short_name" \
   "$program_invocation_short_name" \
   "$program_invocation_short_name" \
   "$program_invocation_short_name" \
@@ -361,7 +347,7 @@ case "$NETCONF_ACTION" in
 	start|stop|restart|list)
 		# Load VRF, BRIDGE, BOND, PHYS, DUMMY, VETH,
 		# GRETAP, IP6GRETAP, VXLAN, VLAN, MACVLAN, GRE, IP6GRE,
-		# IFB, ETHTOOL, NEIGHBOUR, ROUTE, RULE and VR configs
+		# IFB, NEIGHBOUR, ROUTE, RULE and VR configs
 		netconf_argv=("$@")
 		if nctl_is_var_of_empty netconf_argv; then
 			netconf_argv=(
@@ -379,7 +365,6 @@ case "$NETCONF_ACTION" in
 				'gre'
 				'ip6gre'
 				'ifb'
-				'ethtool'
 				'neighbour'
 				'route'
 				'rule'
@@ -443,10 +428,6 @@ case "$NETCONF_ACTION" in
 	ibup|ibdown|iblist)
 		# Load only IFB related configs
 		netconf_argv=('ifb')
-		;;
-	etup|etdown|etlist)
-		# Load only ETHTOOL related configs
-		netconf_argv=('ethtool')
 		;;
 	ngup|ngdown|nglist)
 		# Load only NEIGHBOUR related configs
