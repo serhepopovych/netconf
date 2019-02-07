@@ -226,8 +226,12 @@ netconf_ifdown()
 			u_if="${u_if_new_name:-$u_if_old_name}"
 
 			local u_if_scn="$NCTL_SCN_DIR/$u_if"
-			if [ -e "$u_if_scn" -a ! -e "$u_if_scn/device" ]; then
-				ip link del dev "$u_if" 2>&1 |nctl_log_pipe
+			if [ -e "$u_if_scn" ]; then
+				if [ -e "$u_if_scn/device" ]; then
+					ip link set dev "$u_if" down 2>&1 |nctl_log_pipe
+				else
+					ip link del dev "$u_if" 2>&1 |nctl_log_pipe
+				fi
 			else
 				:
 			fi
