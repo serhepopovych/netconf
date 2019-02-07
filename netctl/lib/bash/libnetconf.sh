@@ -150,8 +150,43 @@ netconf_ifup()
 		*@*)
 			## Existing interface (e.g. physical)
 
+			local -a a=()
+			local -i i=0 once=0
+
 			u_if="${u_if#*@}"
-			ip link set dev "$u_if" "$@" 2>&1 |nctl_log_pipe
+			while [ $# -gt 0 ]; do
+				case "$1" in
+					'name')
+						if [ $once -gt 0 ]; then
+							shift 2
+							continue
+						else
+							once=1
+						fi
+						;;
+					*)
+						a[$((i++))]="$1"
+						shift
+						continue
+						;;
+				esac
+
+				if [ ! -e "$NCTL_SCN_DIR/$2" -o \
+				       -e "$NCTL_SCN_DIR/$u_if" ]; then
+					a[$((i++))]="$1"
+					a[$((i++))]="$2"
+				else
+					u_if="$2"
+				fi
+
+				shift 2
+			done
+
+			if [ ${#a[@]} -le 0 ]; then
+				return
+			fi
+
+			ip link set dev "$u_if" "${a[@]}" 2>&1 |nctl_log_pipe
 			;;
 		*+*)
 			## Traffic control
