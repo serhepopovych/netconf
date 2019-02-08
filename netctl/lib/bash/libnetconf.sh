@@ -198,9 +198,9 @@ netconf_ifup()
 		*-*)
 			## Ethtool settings
 
-			local u_if_object="${u_if#*-}"
-			u_if="${u_if%%-*}"
-			ethtool "-$u_if_object" "$u_if" "$@" 2>&1 |NCTL_LOG_STD=n nctl_log_pipe
+			local u_if_object="${u_if%-*}"
+			u_if="${u_if##*-}"
+			ethtool "$u_if_object" "$u_if" "$@" 2>&1 |NCTL_LOG_STD=n nctl_log_pipe
 			;;
 		*=*)
 			## Sysctl settings
