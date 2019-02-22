@@ -8,14 +8,14 @@ NCTL_LOG_STD=y
 declare -a crt1_request_tools_list=()
 
 # Source startup code
-. /netctl/lib/bash/crt1.sh
+. @dest@/netctl/lib/bash/crt1.sh
 
 # Source functions libraries
-. /netctl/lib/bash/librtti.sh
-. /netctl/lib/bash/libiter.sh
-. /netctl/lib/bash/libfile.sh
-. /netctl/lib/bash/liblog.sh
-. /netctl/lib/bash/libprocess.sh
+. @dest@/netctl/lib/bash/librtti.sh
+. @dest@/netctl/lib/bash/libiter.sh
+. @dest@/netctl/lib/bash/libfile.sh
+. @dest@/netctl/lib/bash/liblog.sh
+. @dest@/netctl/lib/bash/libprocess.sh
 
 # Usage: __netconf_action {start|stop|restart|list|\
 #			 vfup|vfdown|vflist|\
@@ -454,7 +454,7 @@ esac
 nctl_SourceIfNotEmpty "$NCTL_PREFIX/etc/netconf.conf"
 
 # Source netconf library.
-. /netctl/lib/bash/libnetconf.sh "${netconf_argv[@]}" || usage
+. @dest@/netctl/lib/bash/libnetconf.sh "${netconf_argv[@]}" || usage
 
 # Make command line items we operate valid shell variable names
 set -- "${@//[^[:alnum:]_]/_}"
