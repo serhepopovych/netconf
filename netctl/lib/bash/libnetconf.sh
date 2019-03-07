@@ -636,6 +636,37 @@ netconf_mvusage()
 }
 
 ##
+## IPVLAN
+##
+
+# Usage: netconf_ivup {<var_name>}
+netconf_ivup()
+{
+	netconf_ifup "$@"
+}
+
+# Usage: netconf_ivdown {<var_name>}
+netconf_ivdown()
+{
+	netconf_ifdown "$@"
+}
+
+# Usage: netconf_ivlist {<var_name>}
+netconf_ivlist()
+{
+	netconf_iflist "$@"
+}
+
+# Usage: netconf_ivusage [<action>] [<var_name_descr>]
+netconf_ivusage()
+{
+	nctl_log_msg 'usage: %s %s %s...\n' \
+		"$program_invocation_short_name" \
+		"${1:-iv\{up|down|list|usage\}}" \
+		"${2:-<ipvlan_iface_name>}"
+}
+
+##
 ## GRE
 ##
 
@@ -1086,6 +1117,13 @@ netconf_vrup()
 				# might fail.
 				netconf_ifdown "${u_if//[^[:alnum:]_]/_}"
 				;;
+			ivl*)
+				## IPVLAN
+
+				# Load configuration if not already done
+				nctl_is_empty_var 'netconf_ipvlan_list' &&
+					netconf_source 'ipvlan'
+				;;
 			ifb*)
 				## IFB
 
@@ -1189,6 +1227,7 @@ netconf_vrup()
 		netconf_vxlan_dir="$u_netconf/vxlan" \
 		netconf_vlan_dir="$u_netconf/vlan" \
 		netconf_macvlan_dir="$u_netconf/macvlan" \
+		netconf_ipvlan_dir="$u_netconf/ipvlan" \
 		netconf_gre_dir="$u_netconf/gre" \
 		netconf_ip6gre_dir="$u_netconf/ip6gre" \
 		netconf_ifb_dir="$u_netconf/ifb" \
@@ -1260,6 +1299,7 @@ netconf_vrlist()
 		netconf_vxlan_dir="$u_dir/netconf/vxlan" \
 		netconf_vlan_dir="$u_dir/netconf/vlan" \
 		netconf_macvlan_dir="$u_dir/netconf/macvlan" \
+		netconf_ipvlan_dir="$u_dir/netconf/ipvlan" \
 		netconf_gre_dir="$u_dir/netconf/gre" \
 		netconf_ip6gre_dir="$u_dir/netconf/ip6gre" \
 		netconf_ifb_dir="$u_dir/netconf/ifb" \
@@ -1411,6 +1451,12 @@ netconf_source()
 				: ${netconf_macvlan_regex_f:="$NETCONF_MACVLAN_REGEX_F"}
 				: ${netconf_macvlan_dir:="$NETCONF_MACVLAN_DIR"}
 				;;
+			'ipvlan')
+				netconf_ipvlan_list=()
+				: ${netconf_ipvlan_regex:="$NETCONF_IPVLAN_REGEX"}
+				: ${netconf_ipvlan_regex_f:="$NETCONF_IPVLAN_REGEX_F"}
+				: ${netconf_ipvlan_dir:="$NETCONF_IPVLAN_DIR"}
+				;;
 			'gre')
 				netconf_gre_list=()
 				: ${netconf_gre_regex:="$NETCONF_GRE_REGEX"}
@@ -1556,6 +1602,12 @@ declare -a netconf_macvlan_list
 declare netconf_macvlan_regex
 declare netconf_macvlan_regex_f
 declare netconf_macvlan_dir
+
+## IPVLAN
+declare -a netconf_ipvlan_list
+declare netconf_ipvlan_regex
+declare netconf_ipvlan_regex_f
+declare netconf_ipvlan_dir
 
 ## GRE
 declare -a netconf_gre_list
