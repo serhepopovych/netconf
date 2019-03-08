@@ -20,14 +20,14 @@ declare -a crt1_request_tools_list=(
 )
 
 # Source startup code
-. @dest@/netctl/lib/bash/crt1.sh
+. @target@/netctl/lib/bash/crt1.sh
 
 # Source functions libraries
-. @dest@/netctl/lib/bash/libbool.sh
-. @dest@/netctl/lib/bash/librtti.sh
-. @dest@/netctl/lib/bash/libfile.sh
-. @dest@/netctl/lib/bash/liblog.sh
-. @dest@/netctl/lib/bash/libacct.sh
+. @target@/netctl/lib/bash/libbool.sh
+. @target@/netctl/lib/bash/librtti.sh
+. @target@/netctl/lib/bash/libfile.sh
+. @target@/netctl/lib/bash/liblog.sh
+. @target@/netctl/lib/bash/libacct.sh
 
 ##
 ## Accounting

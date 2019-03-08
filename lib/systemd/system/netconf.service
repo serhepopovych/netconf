@@ -2,13 +2,13 @@
 Description=Extended network configuration with netconf
 After=network.target
 Before=lxc.service lxc-net.service libvirtd.service
-ConditionFileIsExecutable=@dest@/netctl/bin/netconf
+ConditionFileIsExecutable=@target@/netctl/bin/netconf
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=@dest@/netctl/bin/netconf start
-ExecStop=@dest@/netctl/bin/netconf stop
+ExecStart=@target@/netctl/bin/netconf start
+ExecStop=@target@/netctl/bin/netconf stop
 StandardOutput=syslog
 StandardError=syslog
 
