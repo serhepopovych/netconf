@@ -1,0 +1,118 @@
+#!/bin/sh -e
+
+iproute2_dir="$ROOT/etc/iproute2"
+if [ ! -d "$iproute2_dir" ]; then
+	[ ! -e "$iproute2_dir" ] || exit 0
+	mkdir -p "$iproute2_dir"
+fi
+
+f="$iproute2_dir/group"
+if [ ! -e "$f" ] || [ -f "$f" ] && ! grep -q -s 'rlm_parity' "$f"; then
+	cat >>"$f" <<'_EOF'
+
+# From kernel perspective group numbers are seen as plain
+# 32-bit integer threated as unsigned.
+#
+# Each new interface created in default(0) network device
+# group if other group id is not given at creation.
+#
+# Network device group -1 (0xffffffff) might have special
+# meaning using this group id is not recommended.
+
+# Following groups currently supported:
+#
+#    0x0 - default
+#    0x1 - uplink
+#    0x2 - downlink
+#    0x3 - loopback
+#    0x4 - management
+#    0x5 - unnumbered
+#    0x6 - sink
+
+0xf	mask
+
+0x1	uplink
+0x2	downlink
+0x3	loopback
+0x4	management
+0x5	unnumbered
+0x6	sink
+
+0xffff0	rlm_mask
+
+0x00000	rlm_cosmos
+0x00010	rlm_sink
+0x00020	rlm_parity
+0x00040	rlm_lo
+0x00080	rlm_wo
+
+# Predefined group names
+0		default
+0xffffffff	_reserved
+_EOF
+fi
+
+f="$iproute2_dir/rt_protos"
+if [ ! -e "$f" ] || [ -f "$f" ] && ! grep -q -s 'netctl' "$f"; then
+	cat >>"$f" <<'_EOF'
+
+#
+#	netctl routes
+#
+200	netctl
+_EOF
+fi
+
+f="$iproute2_dir/rt_realms"
+if [ ! -e "$f" ] || [ -f "$f" ] && ! grep -q -s 'parity' "$f"; then
+	cat >>"$f" <<'_EOF'
+
+0xffff	mask
+
+0x0001	sink
+0x0002	parity
+0x0004	lo
+0x0008	wo
+_EOF
+fi
+
+f="$iproute2_dir/rt_tables"
+if [ ! -e "$f" ] || [ -f "$f" ] && ! grep -q -s 'divert' "$f"; then
+	cat >>"$f" <<'_EOF'
+
+#
+# Divert
+#
+0x10	divert	# 16
+
+#
+# Parity
+#
+0x20	parity	# 32
+
+#
+# LO
+#
+0x40	lo	# 64
+
+#
+# WO
+#
+0x80	wo	# 128
+
+#
+# Management
+#
+0xd0	mgmt	# 208
+
+#
+# Internet
+#
+0xe0	inet	# 224
+
+#
+# Sink
+#
+0xf0	sink	# 240
+_EOF
+fi
