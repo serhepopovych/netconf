@@ -1,13 +1,54 @@
 #!/bin/sh -e
 
+begin_netconf='##### BEGIN NETCONF #####'
+end_netconf='##### END NETCONF #####'
+
+# Usage: begin_netconf_header <file>
+begin_netconf_header()
+{
+	local func="${FUNCNAME:-begin_netconf_header}"
+
+	local f="${1:?missing 1st arg to ${func}() (<file>)}"
+
+	echo "$begin_netconf" >>"$f"
+}
+# Usage: end_netconf_header <file>
+end_netconf_header()
+{
+	local func="${FUNCNAME:-end_netconf_header}"
+
+	local f="${1:?missing 1st arg to ${func}() (<file>)}"
+
+	echo "$end_netconf" >>"$f"
+}
+
+# Usage: prepare_iproute2_mapfile <file>
+prepare_iproute2_mapfile()
+{
+	local f="${1:?missing 1st arg to ${func}() (<file>)}"
+
+	if [ -e "$f" ]; then
+		# Remove netconf block
+		[ -f "$f" ] || return
+		sed -n -e "/$begin_netconf/,/$end_netconf/!p" -i "$f" ||:
+	else
+		# Create empty file
+		: >"$f" || return
+	fi
+}
+
 iproute2_dir="$ROOT/etc/iproute2"
 if [ ! -d "$iproute2_dir" ]; then
 	[ ! -e "$iproute2_dir" ] || exit 0
 	mkdir -p "$iproute2_dir"
 fi
 
+## group
+
 f="$iproute2_dir/group"
-if [ ! -e "$f" ] || [ -f "$f" ] && ! grep -q -s 'rlm_parity' "$f"; then
+if prepare_iproute2_mapfile "$f"; then
+	begin_netconf_header "$f"
+
 	cat >>"$f" <<'_EOF'
 
 # From kernel perspective group numbers are seen as plain
@@ -49,22 +90,36 @@ if [ ! -e "$f" ] || [ -f "$f" ] && ! grep -q -s 'rlm_parity' "$f"; then
 # Predefined group names
 0		default
 0xffffffff	_reserved
+
 _EOF
+
+	end_netconf_header "$f"
 fi
 
+## rt_proto
+
 f="$iproute2_dir/rt_protos"
-if [ ! -e "$f" ] || [ -f "$f" ] && ! grep -q -s 'netctl' "$f"; then
+if prepare_iproute2_mapfile "$f"; then
+	begin_netconf_header "$f"
+
 	cat >>"$f" <<'_EOF'
 
 #
-#	netctl routes
+#	netconf routes
 #
-200	netctl
+200	netconf
+
 _EOF
+
+	end_netconf_header "$f"
 fi
 
+## rt_realms
+
 f="$iproute2_dir/rt_realms"
-if [ ! -e "$f" ] || [ -f "$f" ] && ! grep -q -s 'parity' "$f"; then
+if prepare_iproute2_mapfile "$f"; then
+	begin_netconf_header "$f"
+
 	cat >>"$f" <<'_EOF'
 
 0xffff	mask
@@ -73,11 +128,18 @@ if [ ! -e "$f" ] || [ -f "$f" ] && ! grep -q -s 'parity' "$f"; then
 0x0002	parity
 0x0004	lo
 0x0008	wo
+
 _EOF
+
+	end_netconf_header "$f"
 fi
 
+## rt_tables
+
 f="$iproute2_dir/rt_tables"
-if [ ! -e "$f" ] || [ -f "$f" ] && ! grep -q -s 'divert' "$f"; then
+if prepare_iproute2_mapfile "$f"; then
+	begin_netconf_header "$f"
+
 	cat >>"$f" <<'_EOF'
 
 #
@@ -114,5 +176,8 @@ if [ ! -e "$f" ] || [ -f "$f" ] && ! grep -q -s 'divert' "$f"; then
 # Sink
 #
 0xf0	sink	# 240
+
 _EOF
+
+	end_netconf_header "$f"
 fi
