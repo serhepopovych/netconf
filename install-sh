@@ -181,3 +181,5 @@ _EOF
 
 	end_netconf_header "$f"
 fi
+
+return 0
