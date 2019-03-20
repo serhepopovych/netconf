@@ -1,53 +1,18 @@
 #!/bin/sh -e
 
-begin_netconf='##### BEGIN NETCONF #####'
-end_netconf='##### END NETCONF #####'
-
-# Usage: begin_netconf_header <file>
-begin_netconf_header()
-{
-	local func="${FUNCNAME:-begin_netconf_header}"
-
-	local f="${1:?missing 1st arg to ${func}() (<file>)}"
-
-	echo "$begin_netconf" >>"$f"
-}
-# Usage: end_netconf_header <file>
-end_netconf_header()
-{
-	local func="${FUNCNAME:-end_netconf_header}"
-
-	local f="${1:?missing 1st arg to ${func}() (<file>)}"
-
-	echo "$end_netconf" >>"$f"
-}
-
-# Usage: prepare_iproute2_mapfile <file>
-prepare_iproute2_mapfile()
-{
-	local f="${1:?missing 1st arg to ${func}() (<file>)}"
-
-	if [ -e "$f" ]; then
-		# Remove netconf block
-		[ -f "$f" ] || return
-		sed -n -e "/$begin_netconf/,/$end_netconf/!p" -i "$f" ||:
-	else
-		# Create empty file
-		: >"$f" || return
-	fi
-}
-
 iproute2_dir="$ROOT/etc/iproute2"
 if [ ! -d "$iproute2_dir" ]; then
 	[ ! -e "$iproute2_dir" ] || exit 0
+	# Try to remove if broken symlink.
+	[ ! -L "$iproute2_dir" ] || rm -f "$iproute2_dir" || exit 0
 	mkdir -p "$iproute2_dir"
 fi
 
 ## group
 
 f="$iproute2_dir/group"
-if prepare_iproute2_mapfile "$f"; then
-	begin_netconf_header "$f"
+if prepare_file "$f"; then
+	begin_header "$f"
 
 	cat >>"$f" <<'_EOF'
 
@@ -93,14 +58,14 @@ if prepare_iproute2_mapfile "$f"; then
 
 _EOF
 
-	end_netconf_header "$f"
+	end_header "$f"
 fi
 
 ## rt_proto
 
 f="$iproute2_dir/rt_protos"
-if prepare_iproute2_mapfile "$f"; then
-	begin_netconf_header "$f"
+if prepare_file "$f"; then
+	begin_header "$f"
 
 	cat >>"$f" <<'_EOF'
 
@@ -111,14 +76,14 @@ if prepare_iproute2_mapfile "$f"; then
 
 _EOF
 
-	end_netconf_header "$f"
+	end_header "$f"
 fi
 
 ## rt_realms
 
 f="$iproute2_dir/rt_realms"
-if prepare_iproute2_mapfile "$f"; then
-	begin_netconf_header "$f"
+if prepare_file "$f"; then
+	begin_header "$f"
 
 	cat >>"$f" <<'_EOF'
 
@@ -131,14 +96,14 @@ if prepare_iproute2_mapfile "$f"; then
 
 _EOF
 
-	end_netconf_header "$f"
+	end_header "$f"
 fi
 
 ## rt_tables
 
 f="$iproute2_dir/rt_tables"
-if prepare_iproute2_mapfile "$f"; then
-	begin_netconf_header "$f"
+if prepare_file "$f"; then
+	begin_header "$f"
 
 	cat >>"$f" <<'_EOF'
 
@@ -179,7 +144,7 @@ if prepare_iproute2_mapfile "$f"; then
 
 _EOF
 
-	end_netconf_header "$f"
+	end_header "$f"
 fi
 
 return 0
