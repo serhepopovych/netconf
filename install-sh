@@ -1,12 +1,6 @@
 #!/bin/sh -e
 
 iproute2_dir="$ROOT/etc/iproute2"
-if [ ! -d "$iproute2_dir" ]; then
-	[ ! -e "$iproute2_dir" ] || exit 0
-	# Try to remove if broken symlink.
-	[ ! -L "$iproute2_dir" ] || rm -f "$iproute2_dir" || exit 0
-	mkdir -p "$iproute2_dir"
-fi
 
 ## group
 
