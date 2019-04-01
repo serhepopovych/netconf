@@ -1055,7 +1055,7 @@ netconf_vrup()
 	eval set -- $val
 
 	u_name="$1"
-	u_dir="$netconf_vr_dir/$u_name"
+	u_dir="$netconf_dir/vr/$u_name"
 
 	# 1. Create vr if not exist
 	[ ! -e "/var/run/netns/$u_name" ] || return $rc
@@ -1186,30 +1186,10 @@ netconf_vrup()
 		nctl_inc_rc rc || return $rc
 
 	# 7. Start network subsystem in vr
-	{
-		NCTL_LOG_FILE=n \
-		netconf_vrf_dir="$u_dir/netconf/vrf" \
-		netconf_bridge_dir="$u_dir/netconf/bridge" \
-		netconf_bond_dir="$u_dir/netconf/bond" \
-		netconf_phys_dir="$u_dir/netconf/phys" \
-		netconf_dummy_dir="$u_dir/netconf/dummy" \
-		netconf_veth_dir="$u_dir/netconf/veth" \
-		netconf_gretap_dir="$u_dir/netconf/gretap" \
-		netconf_ip6gretap_dir="$u_dir/netconf/ip6gretap" \
-		netconf_vxlan_dir="$u_dir/netconf/vxlan" \
-		netconf_vlan_dir="$u_dir/netconf/vlan" \
-		netconf_macvlan_dir="$u_dir/netconf/macvlan" \
-		netconf_ipvlan_dir="$u_dir/netconf/ipvlan" \
-		netconf_gre_dir="$u_dir/netconf/gre" \
-		netconf_ip6gre_dir="$u_dir/netconf/ip6gre" \
-		netconf_ifb_dir="$u_dir/netconf/ifb" \
-		netconf_neighbour_dir="$u_dir/netconf/neighbour" \
-		netconf_route_dir="$u_dir/netconf/route" \
-		netconf_rule_dir="$u_dir/netconf/rule" \
-		netconf_vr_dir="$u_dir/netconf/vr" \
-			ip netns exec "$u_name" \
-				"$program_invocation_name" start
-	} 2>&1 |nctl_log_pipe ||
+	NCTL_LOG_FILE=n \
+	netconf_dir="$u_dir/netconf" \
+	ip netns exec "$u_name" \
+		"$program_invocation_name" start 2>&1 |nctl_log_pipe ||
 		nctl_inc_rc rc || return $rc
 
 	return $rc
@@ -1251,36 +1231,16 @@ netconf_vrlist()
 	set -- $val
 
 	local u_name="$1"
-	local u_dir="$netconf_vr_dir/$u_name"
+	local u_dir="$netconf_dir/vr/$u_name"
 
 	printf '%s="%s"\n' "$var_name" "$*" 2>&1 |nctl_log_pipe
 	nctl_get_rc || return
 
 	# 1. List vr netconf configuration
-	{
-		NCTL_LOG_PREFIX_NONE=y \
-		NCTL_LOG_FILE=n \
-		netconf_vrf_dir="$u_dir/netconf/vrf" \
-		netconf_bridge_dir="$u_dir/netconf/bridge" \
-		netconf_bond_dir="$u_dir/netconf/bond" \
-		netconf_phys_dir="$u_dir/netconf/phys" \
-		netconf_dummy_dir="$u_dir/netconf/dummy" \
-		netconf_veth_dir="$u_dir/netconf/veth" \
-		netconf_gretap_dir="$u_dir/netconf/gretap" \
-		netconf_ip6gretap_dir="$u_dir/netconf/ip6gretap" \
-		netconf_vxlan_dir="$u_dir/netconf/vxlan" \
-		netconf_vlan_dir="$u_dir/netconf/vlan" \
-		netconf_macvlan_dir="$u_dir/netconf/macvlan" \
-		netconf_ipvlan_dir="$u_dir/netconf/ipvlan" \
-		netconf_gre_dir="$u_dir/netconf/gre" \
-		netconf_ip6gre_dir="$u_dir/netconf/ip6gre" \
-		netconf_ifb_dir="$u_dir/netconf/ifb" \
-		netconf_neighbour_dir="$u_dir/netconf/neighbour" \
-		netconf_route_dir="$u_dir/netconf/route" \
-		netconf_rule_dir="$u_dir/netconf/rule" \
-		netconf_vr_dir="$u_dir/netconf/vr" \
-			"$program_invocation_name" list
-	} 2>&1 |nctl_log_pipe
+	NCTL_LOG_PREFIX_NONE=y \
+	NCTL_LOG_FILE=n \
+	netconf_dir="$u_dir/netconf" \
+		"$program_invocation_name" list 2>&1 |nctl_log_pipe
 	nctl_get_rc
 }
 
@@ -1346,6 +1306,8 @@ netconf_source()
 	local ns_v_name
 	local ns_regex ns_regex_f ns_dir
 
+	: ${netconf_dir:="$NETCONF_DIR"}
+
 	for ((ns_i = 0, ns_size=$#;
 		ns_i < ns_size; ns_i++)); do
 		ns_v_name="$1"
@@ -1361,115 +1323,96 @@ netconf_source()
 				netconf_vrf_list=()
 				: ${netconf_vrf_regex:="$NETCONF_VRF_REGEX"}
 				: ${netconf_vrf_regex_f:="$NETCONF_VRF_REGEX_F"}
-				: ${netconf_vrf_dir:="$NETCONF_VRF_DIR"}
 				;;
 			'bridge')
 				netconf_bridge_list=()
 				: ${netconf_bridge_regex:="$NETCONF_BRIDGE_REGEX"}
 				: ${netconf_bridge_regex_f:="$NETCONF_BRIDGE_REGEX_F"}
-				: ${netconf_bridge_dir:="$NETCONF_BRIDGE_DIR"}
 				;;
 			'bond')
 				netconf_bond_list=()
 				: ${netconf_bond_regex:="$NETCONF_BOND_REGEX"}
 				: ${netconf_bond_regex_f:="$NETCONF_BOND_REGEX_F"}
-				: ${netconf_bond_dir:="$NETCONF_BOND_DIR"}
 				;;
 			'phys')
 				netconf_phys_list=()
 				: ${netconf_phys_regex:="$NETCONF_PHYS_REGEX"}
 				: ${netconf_phys_regex_f:="$NETCONF_PHYS_REGEX_F"}
-				: ${netconf_phys_dir:="$NETCONF_PHYS_DIR"}
 				;;
 			'dummy')
 				netconf_dummy_list=()
 				: ${netconf_dummy_regex:="$NETCONF_DUMMY_REGEX"}
 				: ${netconf_dummy_regex_f:="$NETCONF_DUMMY_REGEX_F"}
-				: ${netconf_dummy_dir:="$NETCONF_DUMMY_DIR"}
 				;;
 			'veth')
 				netconf_veth_list=()
 				: ${netconf_veth_regex:="$NETCONF_VETH_REGEX"}
 				: ${netconf_veth_regex_f:="$NETCONF_VETH_REGEX_F"}
-				: ${netconf_veth_dir:="$NETCONF_VETH_DIR"}
 				;;
 			'gretap')
 				netconf_gretap_list=()
 				: ${netconf_gretap_regex:="$NETCONF_GRETAP_REGEX"}
 				: ${netconf_gretap_regex_f:="$NETCONF_GRETAP_REGEX_F"}
-				: ${netconf_gretap_dir:="$NETCONF_GRETAP_DIR"}
 				;;
 			'ip6gretap')
 				netconf_ip6gretap_list=()
 				: ${netconf_ip6gretap_regex:="$NETCONF_IP6GRETAP_REGEX"}
 				: ${netconf_ip6gretap_regex_f:="$NETCONF_IP6GRETAP_REGEX_F"}
-				: ${netconf_ip6gretap_dir:="$NETCONF_IP6GRETAP_DIR"}
 				;;
 			'vxlan')
 				netconf_vxlan_list=()
 				: ${netconf_vxlan_regex:="$NETCONF_VXLAN_REGEX"}
 				: ${netconf_vxlan_regex_f:="$NETCONF_VXLAN_REGEX_F"}
-				: ${netconf_vxlan_dir:="$NETCONF_VXLAN_DIR"}
 				;;
 			'vlan')
 				netconf_vlan_list=()
 				: ${netconf_vlan_regex:="$NETCONF_VLAN_REGEX"}
 				: ${netconf_vlan_regex_f:="$NETCONF_VLAN_REGEX_F"}
-				: ${netconf_vlan_dir:="$NETCONF_VLAN_DIR"}
 				;;
 			'macvlan')
 				netconf_macvlan_list=()
 				: ${netconf_macvlan_regex:="$NETCONF_MACVLAN_REGEX"}
 				: ${netconf_macvlan_regex_f:="$NETCONF_MACVLAN_REGEX_F"}
-				: ${netconf_macvlan_dir:="$NETCONF_MACVLAN_DIR"}
 				;;
 			'ipvlan')
 				netconf_ipvlan_list=()
 				: ${netconf_ipvlan_regex:="$NETCONF_IPVLAN_REGEX"}
 				: ${netconf_ipvlan_regex_f:="$NETCONF_IPVLAN_REGEX_F"}
-				: ${netconf_ipvlan_dir:="$NETCONF_IPVLAN_DIR"}
 				;;
 			'gre')
 				netconf_gre_list=()
 				: ${netconf_gre_regex:="$NETCONF_GRE_REGEX"}
 				: ${netconf_gre_regex_f:="$NETCONF_GRE_REGEX_F"}
-				: ${netconf_gre_dir:="$NETCONF_GRE_DIR"}
 				;;
 			'ip6gre')
 				netconf_ip6gre_list=()
 				: ${netconf_ip6gre_regex:="$NETCONF_IP6GRE_REGEX"}
 				: ${netconf_ip6gre_regex_f:="$NETCONF_IP6GRE_REGEX_F"}
-				: ${netconf_ip6gre_dir:="$NETCONF_IP6GRE_DIR"}
 				;;
 			'ifb')
 				netconf_ifb_list=()
 				: ${netconf_ifb_regex:="$NETCONF_IFB_REGEX"}
 				: ${netconf_ifb_regex_f:="$NETCONF_IFB_REGEX_F"}
-				: ${netconf_ifb_dir:="$NETCONF_IFB_DIR"}
 				;;
 			'neighbour')
 				netconf_neighbour_list=()
 				: ${netconf_neighbour_regex:="$NETCONF_NEIGHBOUR_REGEX"}
 				: ${netconf_neighbour_regex_f:="$NETCONF_NEIGHBOUR_REGEX_F"}
-				: ${netconf_neighbour_dir:="$NETCONF_NEIGHBOUR_DIR"}
 				;;
 			'route')
 				netconf_route_list=()
 				: ${netconf_route_regex:="$NETCONF_ROUTE_REGEX"}
 				: ${netconf_route_regex_f:="$NETCONF_ROUTE_REGEX_F"}
-				: ${netconf_route_dir:="$NETCONF_ROUTE_DIR"}
 				;;
 			'rule')
 				netconf_rule_list=()
 				: ${netconf_rule_regex:="$NETCONF_RULE_REGEX"}
 				: ${netconf_rule_regex_f:="$NETCONF_RULE_REGEX_F"}
-				: ${netconf_rule_dir:="$NETCONF_RULE_DIR"}
 				;;
 			'vr')
 				netconf_vr_list=()
 				: ${netconf_vr_regex:="$NETCONF_VR_REGEX"}
 				: ${netconf_vr_regex_f:="$NETCONF_VR_REGEX_F"}
-				: ${netconf_vr_dir:="$NETCONF_VR_DIR"}
 				;;
 			'')
 				continue
@@ -1487,7 +1430,7 @@ netconf_source()
 		nctl_get_val "netconf_${ns_v_name}_regex_f" ns_regex_f ||
 			continue
 		# Get directory/file name
-		nctl_get_val "netconf_${ns_v_name}_dir" ns_dir && [ -d "$ns_dir" ] ||
+		ns_dir="$netconf_dir/$ns_v_name" && [ -d "$ns_dir" ] ||
 			continue
 		# Source file(s)
 		netconf_source_files \
@@ -1512,116 +1455,99 @@ declare -fr netconf_source
 declare -a netconf_vrf_list
 declare netconf_vrf_regex
 declare netconf_vrf_regex_f
-declare netconf_vrf_dir
 
 ## BRIDGE
 declare -a netconf_bridge_list
 declare netconf_bridge_regex
 declare netconf_bridge_regex_f
-declare netconf_bridge_dir
 
 ## BOND
 declare -a netconf_bond_list
 declare netconf_bond_regex
 declare netconf_bond_regex_f
-declare netconf_bond_dir
 
 ## PHYS
 declare -a netconf_phys_list
 declare netconf_phys_regex
 declare netconf_phys_regex_f
-declare netconf_phys_dir
 
 ## DUMMY
 declare -a netconf_dummy_list
 declare netconf_dummy_regex
 declare netconf_dummy_regex_f
-declare netconf_dummy_dir
 
 ## VETH
 declare -a netconf_veth_list
 declare netconf_veth_regex
 declare netconf_veth_regex_f
-declare netconf_veth_dir
 
 ## GRETAP
 declare -a netconf_gretap_list
 declare netconf_gretap_regex
 declare netconf_gretap_regex_f
-declare netconf_gretap_dir
 
 ## IP6GRETAP
 declare -a netconf_ip6gretap_list
 declare netconf_ip6gretap_regex
 declare netconf_ip6gretap_regex_f
-declare netconf_ip6gretap_dir
 
 ## VXLAN
 declare -a netconf_vxlan_list
 declare netconf_vxlan_regex
 declare netconf_vxlan_regex_f
-declare netconf_vxlan_dir
-
 
 ## VLAN
 declare -a netconf_vlan_list
 declare netconf_vlan_regex
 declare netconf_vlan_regex_f
-declare netconf_vlan_dir
 
 ## MACVLAN
 declare -a netconf_macvlan_list
 declare netconf_macvlan_regex
 declare netconf_macvlan_regex_f
-declare netconf_macvlan_dir
 
 ## IPVLAN
 declare -a netconf_ipvlan_list
 declare netconf_ipvlan_regex
 declare netconf_ipvlan_regex_f
-declare netconf_ipvlan_dir
 
 ## GRE
 declare -a netconf_gre_list
 declare netconf_gre_regex
 declare netconf_gre_regex_f
-declare netconf_gre_dir
 
 ## IP6GRE
 declare -a netconf_ip6gre_list
 declare netconf_ip6gre_regex
 declare netconf_ip6gre_regex_f
-declare netconf_ip6gre_dir
 
 ## IFB
 declare -a netconf_ifb_list
 declare netconf_ifb_regex
 declare netconf_ifb_regex_f
-declare netconf_ifb_dir
 
 ## NEIGHBOUR
 declare -a netconf_neighbour_list
 declare netconf_neighbour_regex
 declare netconf_neighbour_regex_f
-declare netconf_neighbour_dir
 
 ## ROUTE
 declare -a netconf_route_list
 declare netconf_route_regex
 declare netconf_route_regex_f
-declare netconf_route_dir
 
 ## RULE
 declare -a netconf_rule_list
 declare netconf_rule_regex
 declare netconf_rule_regex_f
-declare netconf_rule_dir
 
 ## VR
 declare -a netconf_vr_list
 declare netconf_vr_regex
 declare netconf_vr_regex_f
-declare netconf_vr_dir
+
+# Netconf base directory.
+: ${NETCONF_DIR:="$NCTL_PREFIX/etc/netconf"}
 
 # Open accounting file. We cant rely on automatic opening by netconf_account()
 # because race condition might occur and NCTL_LOGFILE_FD == NCTL_ACCOUNT_FD.
