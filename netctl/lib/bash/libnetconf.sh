@@ -1039,7 +1039,8 @@ netconf_vrup()
 	# Account actions
 	trap '
 		netconf_account "$var_name" "$val"
-		[ -n "$u_name" -a $rc -ne 0 ] && ip netns del "$u_name"
+		[ $rc -eq 0 ] || [ ! -e "/var/run/netns/$u_name" ] ||
+			ip netns del "$u_name"
 		trap - RETURN
 	' RETURN
 
@@ -1056,6 +1057,9 @@ netconf_vrup()
 
 	u_name="$1"
 	u_dir="$netconf_dir/vr/$u_name"
+
+	[ -d "$u_dir" ] ||
+		nctl_inc_rc rc || return $rc
 
 	# 1. Create vr if not exist
 	[ ! -e "/var/run/netns/$u_name" ] || return $rc
@@ -1232,6 +1236,8 @@ netconf_vrlist()
 
 	local u_name="$1"
 	local u_dir="$netconf_dir/vr/$u_name"
+
+	[ -d "$u_dir" ] || return
 
 	printf '%s="%s"\n' "$var_name" "$*" 2>&1 |nctl_log_pipe
 	nctl_get_rc || return
