@@ -1044,7 +1044,7 @@ netconf_vrup()
 	' RETURN
 
 	local -i rc=0
-	local u_name u_if u_dir u_dir_netns u_rules
+	local u_name u_if u_dir u_rules
 
 	local var_name="$1"
 
@@ -1056,7 +1056,6 @@ netconf_vrup()
 
 	u_name="$1"
 	u_dir="$netconf_vr_dir/$u_name"
-	u_dir_netns="/etc/netns/$u_name"
 
 	# 1. Create vr if not exist
 	[ ! -e "/var/run/netns/$u_name" ] || return $rc
@@ -1167,74 +1166,47 @@ netconf_vrup()
 
 	# 5. Load iptables(8)/ip6tables(8) rules
 
-	u_rules='iptables/rules.v4'
-	u_rules_netns="$u_dir_netns/$u_rules"
-	u_rules_vr="$u_dir/$u_rules"
-	if [ -f "$u_rules_vr" -a -s "$u_rules_vr" ]; then
-		[ "$u_rules_vr" -ef "$u_rules_netns" ] && \
-			u_rules="/etc/$u_rules" || \
-			u_rules="$u_rules_vr"
+	u_rules="$u_dir/iptables/rules.v4"
+	if [ -f "$u_rules" -a -s "$u_rules" ]; then
 		ip netns exec "$u_name" \
 			"$SHELL" -c "iptables-restore <$u_rules" 2>&1 |nctl_log_pipe ||
 				nctl_inc_rc rc || return $rc
 	fi
 
-	u_rules='ip6tables/rules.v6'
-	u_rules_netns="$u_dir_netns/$u_rules"
-	u_rules_vr="$u_dir/$u_rules"
-	if [ -f "$u_rules_vr" -a -s "$u_rules_vr" ]; then
-		[ "$u_rules_vr" -ef "$u_rules_netns" ] && \
-			u_rules="/etc/$u_rules" || \
-			u_rules="$u_rules_vr"
+	u_rules="$u_dir/ip6tables/rules.v6"
+	if [ -f "$u_rules" -a -s "$u_rules" ]; then
 		ip netns exec "$u_name" \
 			"$SHELL" -c "ip6tables-restore <$u_rules" 2>&1 |nctl_log_pipe ||
 				nctl_inc_rc rc || return $rc
 	fi
 
 	# 6. Configure sysctls
-
-	u_sysctl="sysctl.d/netctl.conf"
-	u_sysctl_netns="$u_dir_netns/$u_sysctl"
-	u_sysctl_vr="$u_dir/$u_sysctl"
-	if [ -f "$u_sysctl_vr" -a -s "$u_sysctl_vr" ]; then
-		[ "$u_sysctl_vr" -ef "$u_sysctl_netns" ] && \
-			u_sysctl="/etc/$u_sysctl" || \
-			u_sysctl="$u_sysctl_vr"
-		ip netns exec "$u_name" \
-			"$SHELL" -c "sysctl -qp $u_sysctl" 2>&1 |nctl_log_pipe ||
-				nctl_inc_rc rc || return $rc
-	fi
+	ip netns exec "$u_name" \
+		"$SHELL" -c "sysctl -qp $u_dir/sysctl.d/netctl.conf" 2>&1 |nctl_log_pipe ||
+		nctl_inc_rc rc || return $rc
 
 	# 7. Start network subsystem in vr
 	{
-		u_netconf='netconf'
-		u_netconf_netns="$u_dir_netns/$u_netconf"
-		u_netconf_vr="$u_dir/$u_netconf"
-
-		[ "$u_netconf_vr" -ef "$u_netconf_netns" ] && \
-			u_netconf="/etc/$u_netconf" || \
-			u_netconf="$u_netconf_vr"
-
 		NCTL_LOG_FILE=n \
-		netconf_vrf_dir="$u_netconf/vrf" \
-		netconf_bridge_dir="$u_netconf/bridge" \
-		netconf_bond_dir="$u_netconf/bond" \
-		netconf_phys_dir="$u_netconf/phys" \
-		netconf_dummy_dir="$u_netconf/dummy" \
-		netconf_veth_dir="$u_netconf/veth" \
-		netconf_gretap_dir="$u_netconf/gretap" \
-		netconf_ip6gretap_dir="$u_netconf/ip6gretap" \
-		netconf_vxlan_dir="$u_netconf/vxlan" \
-		netconf_vlan_dir="$u_netconf/vlan" \
-		netconf_macvlan_dir="$u_netconf/macvlan" \
-		netconf_ipvlan_dir="$u_netconf/ipvlan" \
-		netconf_gre_dir="$u_netconf/gre" \
-		netconf_ip6gre_dir="$u_netconf/ip6gre" \
-		netconf_ifb_dir="$u_netconf/ifb" \
-		netconf_neighbour_dir="$u_netconf/neighbour" \
-		netconf_route_dir="$u_netconf/route" \
-		netconf_rule_dir="$u_netconf/rule" \
-		netconf_vr_dir="$u_netconf/vr" \
+		netconf_vrf_dir="$u_dir/netconf/vrf" \
+		netconf_bridge_dir="$u_dir/netconf/bridge" \
+		netconf_bond_dir="$u_dir/netconf/bond" \
+		netconf_phys_dir="$u_dir/netconf/phys" \
+		netconf_dummy_dir="$u_dir/netconf/dummy" \
+		netconf_veth_dir="$u_dir/netconf/veth" \
+		netconf_gretap_dir="$u_dir/netconf/gretap" \
+		netconf_ip6gretap_dir="$u_dir/netconf/ip6gretap" \
+		netconf_vxlan_dir="$u_dir/netconf/vxlan" \
+		netconf_vlan_dir="$u_dir/netconf/vlan" \
+		netconf_macvlan_dir="$u_dir/netconf/macvlan" \
+		netconf_ipvlan_dir="$u_dir/netconf/ipvlan" \
+		netconf_gre_dir="$u_dir/netconf/gre" \
+		netconf_ip6gre_dir="$u_dir/netconf/ip6gre" \
+		netconf_ifb_dir="$u_dir/netconf/ifb" \
+		netconf_neighbour_dir="$u_dir/netconf/neighbour" \
+		netconf_route_dir="$u_dir/netconf/route" \
+		netconf_rule_dir="$u_dir/netconf/rule" \
+		netconf_vr_dir="$u_dir/netconf/vr" \
 			ip netns exec "$u_name" \
 				"$program_invocation_name" start
 	} 2>&1 |nctl_log_pipe ||
