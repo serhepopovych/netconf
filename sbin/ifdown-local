@@ -1,0 +1,7 @@
+#!/bin/sh
+
+hook='/etc/netconf/hook'
+
+if [ -x "$hook" ]; then
+	MODE=stop IFACE="$1" exec "$hook"
+fi
