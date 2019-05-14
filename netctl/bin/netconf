@@ -476,8 +476,17 @@ nctl_SourceIfNotEmpty "$NCTL_PREFIX/etc/netconf.conf"
 . @target@/netctl/lib/bash/libnetconf.sh "${netconf_argv[@]}" || usage
 
 # Make command line items we operate valid shell variable names
-set -- "${@//[^[:alnum:]_]/_}"
-set -- "${@/#[[:digit:]]/_}"
+if [ $# -gt 0 ]; then
+	set -- "${@//[^[:alnum:]_]/_}"
+	set -- "${@/#[[:digit:]]/_}"
+
+	# Skip reference(s) and aliases (backward compatibility)
+	set -- "${@##*_ref[[:digit:]]*}"
+	set -- "${@##*_a[[:digit:]]*}"
+
+	# There might be no arguments if reference(s) only specified
+	$(IFS=''; [ -n "$*" ]) || exit 0
+fi
 
 # Execute action
 "$netconf_action" "$NETCONF_ACTION" "$@"

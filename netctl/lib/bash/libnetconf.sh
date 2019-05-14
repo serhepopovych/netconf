@@ -1296,8 +1296,9 @@ netconf_source_files()
 	nctl_set_val "$nsf_a_name" \
 	$(
 		sed -nE "${nsf_a_data[@]}" \
-			-e"/^[[:space:]]*(#|\$)/b;\
-			  s/^[[:space:]]*($nsf_var_name_regex)=[\"']?.*['\"]?[[:space:]]*(#|\$)/\1/p"
+			-e '/^[[:space:]]*(#|$)/b' \
+			-e '/[^[:space:]]_(ref|a)[[:digit:]]+=/b' \
+			-e "s/^[[:space:]]*($nsf_var_name_regex)=[\"']?.*['\"]?[[:space:]]*(#|\$)/\1/p"
 	)
 	IFS="$nsf_eval"
 }
