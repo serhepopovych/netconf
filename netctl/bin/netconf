@@ -351,6 +351,36 @@ usage()
 	exit $NCTL_EXIT_FAILURE
 }
 
+# Usage: netctl_conf [<var>] <item>...
+netconf_items()
+{
+	local var="${1:?missing 1st argument to function \"$FUNCNAME\" (var)}"
+	shift
+	local -a items=()
+	local -i i=0
+	local -i rc=0
+
+	while [ $# -gt 0 ]; do
+		if [ -n "$1" ]; then
+			if [ -z "${netconf_items_mtch##*|$1|*}" ]; then
+				items[$((i++))]="$1"
+			else
+				rc=1
+				break
+			fi
+		fi
+		shift
+	done
+
+	if [ $i -le 0 ]; then
+		items=("${netconf_items_dflt[@]}")
+	fi
+
+	[ $rc -eq 0 ]
+
+	nctl_return "$var" "${items[@]}"
+}
+
 # Init
 NETCONF_ACTION="$1"
 shift
@@ -362,10 +392,7 @@ case "$NETCONF_ACTION" in
 		# Load VRF, BRIDGE, BOND, PHYS, DUMMY, VETH,
 		# GRETAP, IP6GRETAP, VXLAN, VLAN, MACVLAN, IPVLAN,
 		# GRE, IP6GRE, IFB, NEIGHBOUR, ROUTE, RULE and VR configs
-		netconf_argv=("$@")
-		if nctl_is_var_of_empty netconf_argv; then
-			netconf_argv=("${netconf_items_dflt[@]}")
-		fi
+		netconf_items netconf_argv "$@"
 		set --
 		;;
 	vfup|vfdown|vflist)
