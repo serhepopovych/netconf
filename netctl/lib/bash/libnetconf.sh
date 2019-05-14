@@ -28,6 +28,7 @@ declare -a crt1_request_tools_list=(
 . @target@/netctl/lib/bash/libfile.sh
 . @target@/netctl/lib/bash/liblog.sh
 . @target@/netctl/lib/bash/libacct.sh
+. @target@/netctl/lib/bash/libstring.sh
 
 ##
 ## Accounting
@@ -1310,7 +1311,7 @@ netconf_source()
 	local -i ns_size
 	local -i ns_i
 	local -i ns_rc=0
-	local ns_v_name
+	local ns_v_name NS_V_NAME
 	local ns_regex ns_regex_f ns_dir
 
 	: ${netconf_dir:="$NETCONF_DIR"}
@@ -1319,117 +1320,25 @@ netconf_source()
 		ns_i < ns_size; ns_i++)); do
 		ns_v_name="$1"
 		shift
+
 		# Adjst configuration for known subsystems, ignore unknown/empty.
-		#
-		# Please note that variables prefixed with "netconf_*" are
-		# created/updated in parent bash namespace, so they could be set
-		# to overwrite defaults to starting only parts from the facility
-		# (e.g. only start vlan 100).
-		case "$ns_v_name" in
-			'vrf')
-				netconf_vrf_list=()
-				: ${netconf_vrf_regex:="$NETCONF_VRF_REGEX"}
-				: ${netconf_vrf_regex_f:="$NETCONF_VRF_REGEX_F"}
-				;;
-			'bridge')
-				netconf_bridge_list=()
-				: ${netconf_bridge_regex:="$NETCONF_BRIDGE_REGEX"}
-				: ${netconf_bridge_regex_f:="$NETCONF_BRIDGE_REGEX_F"}
-				;;
-			'bond')
-				netconf_bond_list=()
-				: ${netconf_bond_regex:="$NETCONF_BOND_REGEX"}
-				: ${netconf_bond_regex_f:="$NETCONF_BOND_REGEX_F"}
-				;;
-			'phys')
-				netconf_phys_list=()
-				: ${netconf_phys_regex:="$NETCONF_PHYS_REGEX"}
-				: ${netconf_phys_regex_f:="$NETCONF_PHYS_REGEX_F"}
-				;;
-			'dummy')
-				netconf_dummy_list=()
-				: ${netconf_dummy_regex:="$NETCONF_DUMMY_REGEX"}
-				: ${netconf_dummy_regex_f:="$NETCONF_DUMMY_REGEX_F"}
-				;;
-			'veth')
-				netconf_veth_list=()
-				: ${netconf_veth_regex:="$NETCONF_VETH_REGEX"}
-				: ${netconf_veth_regex_f:="$NETCONF_VETH_REGEX_F"}
-				;;
-			'gretap')
-				netconf_gretap_list=()
-				: ${netconf_gretap_regex:="$NETCONF_GRETAP_REGEX"}
-				: ${netconf_gretap_regex_f:="$NETCONF_GRETAP_REGEX_F"}
-				;;
-			'ip6gretap')
-				netconf_ip6gretap_list=()
-				: ${netconf_ip6gretap_regex:="$NETCONF_IP6GRETAP_REGEX"}
-				: ${netconf_ip6gretap_regex_f:="$NETCONF_IP6GRETAP_REGEX_F"}
-				;;
-			'vxlan')
-				netconf_vxlan_list=()
-				: ${netconf_vxlan_regex:="$NETCONF_VXLAN_REGEX"}
-				: ${netconf_vxlan_regex_f:="$NETCONF_VXLAN_REGEX_F"}
-				;;
-			'vlan')
-				netconf_vlan_list=()
-				: ${netconf_vlan_regex:="$NETCONF_VLAN_REGEX"}
-				: ${netconf_vlan_regex_f:="$NETCONF_VLAN_REGEX_F"}
-				;;
-			'macvlan')
-				netconf_macvlan_list=()
-				: ${netconf_macvlan_regex:="$NETCONF_MACVLAN_REGEX"}
-				: ${netconf_macvlan_regex_f:="$NETCONF_MACVLAN_REGEX_F"}
-				;;
-			'ipvlan')
-				netconf_ipvlan_list=()
-				: ${netconf_ipvlan_regex:="$NETCONF_IPVLAN_REGEX"}
-				: ${netconf_ipvlan_regex_f:="$NETCONF_IPVLAN_REGEX_F"}
-				;;
-			'gre')
-				netconf_gre_list=()
-				: ${netconf_gre_regex:="$NETCONF_GRE_REGEX"}
-				: ${netconf_gre_regex_f:="$NETCONF_GRE_REGEX_F"}
-				;;
-			'ip6gre')
-				netconf_ip6gre_list=()
-				: ${netconf_ip6gre_regex:="$NETCONF_IP6GRE_REGEX"}
-				: ${netconf_ip6gre_regex_f:="$NETCONF_IP6GRE_REGEX_F"}
-				;;
-			'ifb')
-				netconf_ifb_list=()
-				: ${netconf_ifb_regex:="$NETCONF_IFB_REGEX"}
-				: ${netconf_ifb_regex_f:="$NETCONF_IFB_REGEX_F"}
-				;;
-			'neighbour')
-				netconf_neighbour_list=()
-				: ${netconf_neighbour_regex:="$NETCONF_NEIGHBOUR_REGEX"}
-				: ${netconf_neighbour_regex_f:="$NETCONF_NEIGHBOUR_REGEX_F"}
-				;;
-			'route')
-				netconf_route_list=()
-				: ${netconf_route_regex:="$NETCONF_ROUTE_REGEX"}
-				: ${netconf_route_regex_f:="$NETCONF_ROUTE_REGEX_F"}
-				;;
-			'rule')
-				netconf_rule_list=()
-				: ${netconf_rule_regex:="$NETCONF_RULE_REGEX"}
-				: ${netconf_rule_regex_f:="$NETCONF_RULE_REGEX_F"}
-				;;
-			'vr')
-				netconf_vr_list=()
-				: ${netconf_vr_regex:="$NETCONF_VR_REGEX"}
-				: ${netconf_vr_regex_f:="$NETCONF_VR_REGEX_F"}
-				;;
-			'')
-				continue
-				;;
-			*)
-				! :
-				nctl_inc_rc ns_rc
-				break
-				;;
-		esac
+
+		# empty
+		if [ -z "$ns_v_name" ]; then
+			continue
+		fi
+		# unknown
+		if [ -n "${netconf_item_mtch##*|$ns_v_name|*}" ]; then
+			: $((ns_rc++))
+			break
+		fi
+
+		nctl_strtoupper "$ns_v_name" NS_V_NAME
+
+		eval "netconf_${ns_v_name}_list=()"
+		eval ": \${netconf_${ns_v_name}_regex:=\"\$NETCONF_${NS_V_NAME}_REGEX\"}"
+		eval ": \${netconf_${ns_v_name}_regex_f:=\"\$NETCONF_${NS_V_NAME}_REGEX_F\"}"
+
 		# Get variable name regex
 		nctl_get_val "netconf_${ns_v_name}_regex" ns_regex ||
 			continue
@@ -1456,102 +1365,33 @@ declare -fr netconf_source
 # Initialization                                                               #
 ################################################################################
 
-### Global variable namespace
+### Global items default list and string to check item presence
 
-## VRF
-declare -a netconf_vrf_list
-declare netconf_vrf_regex
-declare netconf_vrf_regex_f
+declare -ar netconf_items_dflt=(
+	'vrf'
+	'bridge'
+	'bond'
+	'phys'
+	'dummy'
+	'veth'
+	'gretap'
+	'ip6gretap'
+	'vxlan'
+	'vlan'
+	'macvlan'
+	'ipvlan'
+	'gre'
+	'ip6gre'
+	'ifb'
+	'neighbour'
+	'route'
+	'rule'
+	'vr'
+)
+declare -ir netconf_items_dflt_size=${#netconf_items_dflt[@]}
 
-## BRIDGE
-declare -a netconf_bridge_list
-declare netconf_bridge_regex
-declare netconf_bridge_regex_f
-
-## BOND
-declare -a netconf_bond_list
-declare netconf_bond_regex
-declare netconf_bond_regex_f
-
-## PHYS
-declare -a netconf_phys_list
-declare netconf_phys_regex
-declare netconf_phys_regex_f
-
-## DUMMY
-declare -a netconf_dummy_list
-declare netconf_dummy_regex
-declare netconf_dummy_regex_f
-
-## VETH
-declare -a netconf_veth_list
-declare netconf_veth_regex
-declare netconf_veth_regex_f
-
-## GRETAP
-declare -a netconf_gretap_list
-declare netconf_gretap_regex
-declare netconf_gretap_regex_f
-
-## IP6GRETAP
-declare -a netconf_ip6gretap_list
-declare netconf_ip6gretap_regex
-declare netconf_ip6gretap_regex_f
-
-## VXLAN
-declare -a netconf_vxlan_list
-declare netconf_vxlan_regex
-declare netconf_vxlan_regex_f
-
-## VLAN
-declare -a netconf_vlan_list
-declare netconf_vlan_regex
-declare netconf_vlan_regex_f
-
-## MACVLAN
-declare -a netconf_macvlan_list
-declare netconf_macvlan_regex
-declare netconf_macvlan_regex_f
-
-## IPVLAN
-declare -a netconf_ipvlan_list
-declare netconf_ipvlan_regex
-declare netconf_ipvlan_regex_f
-
-## GRE
-declare -a netconf_gre_list
-declare netconf_gre_regex
-declare netconf_gre_regex_f
-
-## IP6GRE
-declare -a netconf_ip6gre_list
-declare netconf_ip6gre_regex
-declare netconf_ip6gre_regex_f
-
-## IFB
-declare -a netconf_ifb_list
-declare netconf_ifb_regex
-declare netconf_ifb_regex_f
-
-## NEIGHBOUR
-declare -a netconf_neighbour_list
-declare netconf_neighbour_regex
-declare netconf_neighbour_regex_f
-
-## ROUTE
-declare -a netconf_route_list
-declare netconf_route_regex
-declare netconf_route_regex_f
-
-## RULE
-declare -a netconf_rule_list
-declare netconf_rule_regex
-declare netconf_rule_regex_f
-
-## VR
-declare -a netconf_vr_list
-declare netconf_vr_regex
-declare netconf_vr_regex_f
+nctl_args2pat 'netconf_items_mtch' '|' "${netconf_items_dflt[@]}"
+declare -r netconf_items_mtch
 
 # Netconf base directory.
 : ${NETCONF_DIR:="$NCTL_PREFIX/etc/netconf"}

@@ -364,27 +364,7 @@ case "$NETCONF_ACTION" in
 		# GRE, IP6GRE, IFB, NEIGHBOUR, ROUTE, RULE and VR configs
 		netconf_argv=("$@")
 		if nctl_is_var_of_empty netconf_argv; then
-			netconf_argv=(
-				'vrf'
-				'bridge'
-				'bond'
-				'phys'
-				'dummy'
-				'veth'
-				'gretap'
-				'ip6gretap'
-				'vxlan'
-				'vlan'
-				'macvlan'
-				'ipvlan'
-				'gre'
-				'ip6gre'
-				'ifb'
-				'neighbour'
-				'route'
-				'rule'
-				'vr'
-			)
+			netconf_argv=("${netconf_items_dflt[@]}")
 		fi
 		set --
 		;;
