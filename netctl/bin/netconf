@@ -469,9 +469,6 @@ case "$NETCONF_ACTION" in
 		;;
 esac
 
-# Source local netconf configuration
-nctl_SourceIfNotEmpty "$NCTL_PREFIX/etc/netconf.conf"
-
 # Source netconf library.
 . @target@/netctl/lib/bash/libnetconf.sh "${netconf_argv[@]}" || usage
 
