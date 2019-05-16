@@ -1,2 +1,2 @@
-family_6_pref_0x310="-6 0x310 fwmark 0x7f100000/0xfff10000 table divert"
-family_6_pref_0x7fe0="-6 0x7fe0 table inet"
+rule_family_6_pref_0x310="-6 0x310 fwmark 0x7f100000/0xfff10000 table divert"
+rule_family_6_pref_0x7fe0="-6 0x7fe0 table inet"

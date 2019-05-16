@@ -8,8 +8,7 @@ declare -r __included_libnetconf=1
 declare -a crt1_request_tools_list=(
 	'ip'			# ip(8)
 	'tc'			# tc(8)
-	'sort'			# sort(1)
-	'find'			# find(1)
+	'xargs'			# xargs(1)
 	'sed'			# sed(1)
 	'cat'			# cat(1)
 	'ipset'			# ipset(8)
@@ -242,8 +241,8 @@ netconf_ifdown()
 }
 declare -fr netconf_ifdown
 
-# Usage: netconf_iflist {<var_name>}
-netconf_iflist()
+# Usage: netconf_ifshow {<var_name>}
+netconf_ifshow()
 {
 	local var_name="$1"
 	local val
@@ -263,479 +262,344 @@ netconf_iflist()
 	printf '%s="%s"\n' "$var_name" "$*" 2>&1 |nctl_log_pipe
 	nctl_get_rc
 }
-declare -fr netconf_iflist
+declare -fr netconf_ifshow
 
 ##
 ## IFB
 ##
 
-# Usage: netconf_ibup {<var_name>}
-netconf_ibup()
+# Usage: netconf_ifb_up {<var_name>}
+netconf_ifb_up()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_ibdown {<var_name>}
-netconf_ibdown()
+# Usage: netconf_ifb_down {<var_name>}
+netconf_ifb_down()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_iblist {<var_name>}
-netconf_iblist()
+# Usage: netconf_ifb_show {<var_name>}
+netconf_ifb_show()
 {
-	netconf_iflist "$@"
-}
-
-# Usage: netconf_ibusage [<action>] [<var_name_descr>]
-netconf_ibusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-ib\{up|down|list|usage\}}" \
-		"${2:-<ifb_iface_name>}"
+	netconf_ifshow "$@"
 }
 
 ##
 ## VRF
 ##
 
-# Usage: netconf_vfup {<var_name>}
-netconf_vfup()
+# Usage: netconf_vrf_up {<var_name>}
+netconf_vrf_up()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_vfdown {<var_name>}
-netconf_vfdown()
+# Usage: netconf_vrf_down {<var_name>}
+netconf_vrf_down()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_vflist {<var_name>}
-netconf_vflist()
+# Usage: netconf_vrf_show {<var_name>}
+netconf_vrf_show()
 {
-	netconf_iflist "$@"
-}
-
-# Usage: netconf_vfusage [<action>] [<var_name_descr>]
-netconf_vfusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-vf\{up|down|list|usage\}}" \
-		"${2:-<vrf_iface_name>}"
+	netconf_ifshow "$@"
 }
 
 ##
 ## BRIDGE
 ##
 
-# Usage: netconf_brup {<var_name>}
-netconf_brup()
+# Usage: netconf_bridge_up {<var_name>}
+netconf_bridge_up()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_brdown {<var_name>}
-netconf_brdown()
+# Usage: netconf_bridge_down {<var_name>}
+netconf_bridge_down()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_brlist {<var_name>}
-netconf_brlist()
+# Usage: netconf_bridge_show {<var_name>}
+netconf_bridge_show()
 {
-	netconf_iflist "$@"
-}
-
-# Usage: netconf_brusage [<action>] [<var_name_descr>]
-netconf_brusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-br\{up|down|list|usage\}}" \
-		"${2:-<bridge_iface_name>}"
+	netconf_ifshow "$@"
 }
 
 ##
 ## BOND
 ##
 
-# Usage: netconf_bnup {<var_name>}
-netconf_bnup()
+# Usage: netconf_bond_up {<var_name>}
+netconf_bond_up()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_bndown {<var_name>}
-netconf_bndown()
+# Usage: netconf_bond_down {<var_name>}
+netconf_bond_down()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_bnlist {<var_name>}
-netconf_bnlist()
+# Usage: netconf_bond_show {<var_name>}
+netconf_bond_show()
 {
-	netconf_iflist "$@"
-}
-
-# Usage: netconf_bnusage [<action>] [<var_name_descr>]
-netconf_bnusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-bn\{up|down|list|usage\}}" \
-		"${2:-<bond_iface_name>}"
+	netconf_ifshow "$@"
 }
 
 ##
 ## HOST
 ##
 
-# Usage: netconf_htup {<var_name>}
-netconf_htup()
+# Usage: netconf_host_up {<var_name>}
+netconf_host_up()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_htdown {<var_name>}
-netconf_htdown()
+# Usage: netconf_host_down {<var_name>}
+netconf_host_down()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_htlist {<var_name>}
-netconf_htlist()
+# Usage: netconf_host_show {<var_name>}
+netconf_host_show()
 {
-	netconf_iflist "$@"
-}
-
-# Usage: netconf_htusage [<action>] [<var_name_descr>]
-netconf_htusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-ht\{up|down|list|usage\}}" \
-		"${2:-<host_iface_name>}"
+	netconf_ifshow "$@"
 }
 
 ##
 ## DUMMY
 ##
 
-# Usage: netconf_dmup {<var_name>}
-netconf_dmup()
+# Usage: netconf_dummy_up {<var_name>}
+netconf_dummy_up()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_dmdown {<var_name>}
-netconf_dmdown()
+# Usage: netconf_dummy_down {<var_name>}
+netconf_dummy_down()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_dmlist {<var_name>}
-netconf_dmlist()
+# Usage: netconf_dummy_show {<var_name>}
+netconf_dummy_show()
 {
-	netconf_iflist "$@"
-}
-
-# Usage: netconf_dmusage [<action>] [<var_name_descr>]
-netconf_dmusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-lo\{up|down|list|usage\}}" \
-		"${2:-<dummy_iface_name>}"
+	netconf_ifshow "$@"
 }
 
 ##
 ## VETH
 ##
 
-# Usage: netconf_vzup {<var_name>}
-netconf_vzup()
+# Usage: netconf_veth_up {<var_name>}
+netconf_veth_up()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_vzdown {<var_name>}
-netconf_vzdown()
+# Usage: netconf_veth_down {<var_name>}
+netconf_veth_down()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_vzlist {<var_name>}
-netconf_vzlist()
+# Usage: netconf_veth_show {<var_name>}
+netconf_veth_show()
 {
-	netconf_iflist "$@"
-}
-
-# Usage: netconf_vzusage [<action>] [<var_name_descr>]
-netconf_vzusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-vz\{up|down|list|usage\}}" \
-		"${2:-<veth_iface_name>}"
+	netconf_ifshow "$@"
 }
 
 ##
 ## GRETAP
 ##
 
-# Usage: netconf_gtup {<var_name>}
-netconf_gtup()
+# Usage: netconf_gretap_up {<var_name>}
+netconf_gretap_up()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_gtdown {<var_name>}
-netconf_gtdown()
+# Usage: netconf_gretap_down {<var_name>}
+netconf_gretap_down()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_gtlist {<var_name>}
-netconf_gtlist()
+# Usage: netconf_gretap_show {<var_name>}
+netconf_gretap_show()
 {
-	netconf_iflist "$@"
-}
-
-# Usage: netconf_gtusage [<action>] [<var_name_descr>]
-netconf_gtusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-gt\{up|down|list|usage\}}" \
-		"${2:-<gretap_iface_name>}"
+	netconf_ifshow "$@"
 }
 
 ##
 ## IP6GRETAP
 ##
 
-# Usage: netconf_g6tup {<var_name>}
-netconf_g6tup()
+# Usage: netconf_ip6gretap_up {<var_name>}
+netconf_ip6gretap_up()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_g6tdown {<var_name>}
-netconf_g6tdown()
+# Usage: netconf_ip6gretap_down {<var_name>}
+netconf_ip6gretap_down()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_g6tlist {<var_name>}
-netconf_g6tlist()
+# Usage: netconf_ip6gretap_show {<var_name>}
+netconf_ip6gretap_show()
 {
-	netconf_iflist "$@"
-}
-
-# Usage: netconf_g6tusage [<action>] [<var_name_descr>]
-netconf_g6tusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-g6t\{up|down|list|usage\}}" \
-		"${2:-<ip6gretap_iface_name>}"
+	netconf_ifshow "$@"
 }
 
 ##
 ## VXLAN
 ##
 
-# Usage: netconf_vxup {<var_name>}
-netconf_vxup()
+# Usage: netconf_vxlan_up {<var_name>}
+netconf_vxlan_up()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_vxdown {<var_name>}
-netconf_vxdown()
+# Usage: netconf_vxlan_down {<var_name>}
+netconf_vxlan_down()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_vxlist {<var_name>}
-netconf_vxlist()
+# Usage: netconf_vxlan_show {<var_name>}
+netconf_vxlan_show()
 {
-	netconf_iflist "$@"
-}
-
-# Usage: netconf_vxusage [<action>] [<var_name_descr>]
-netconf_vxusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-vx\{up|down|list|usage\}}" \
-		"${2:-<vxlan_iface_name>}"
+	netconf_ifshow "$@"
 }
 
 ##
 ## VLAN
 ##
 
-# Usage: netconf_vup {<var_name>}
-netconf_vup()
+# Usage: netconf_vlan_up {<var_name>}
+netconf_vlan_up()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_vdown {<var_name>}
-netconf_vdown()
+# Usage: netconf_vlan_down {<var_name>}
+netconf_vlan_down()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_vlist {<var_name>}
-netconf_vlist()
+# Usage: netconf_vlan_show {<var_name>}
+netconf_vlan_show()
 {
-	netconf_iflist "$@"
-}
-
-# Usage: netconf_vusage [<action>] [<var_name_descr>]
-netconf_vusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-v\{up|down|list|usage\}}" \
-		"${2:-<vlan_iface_name>}"
+	netconf_ifshow "$@"
 }
 
 ##
 ## MACVLAN
 ##
 
-# Usage: netconf_mvup {<var_name>}
-netconf_mvup()
+# Usage: netconf_macvlan_up {<var_name>}
+netconf_macvlan_up()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_mvdown {<var_name>}
-netconf_mvdown()
+# Usage: netconf_macvlan_down {<var_name>}
+netconf_macvlan_down()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_mvlist {<var_name>}
-netconf_mvlist()
+# Usage: netconf_macvlan_show {<var_name>}
+netconf_macvlan_show()
 {
-	netconf_iflist "$@"
-}
-
-# Usage: netconf_mvusage [<action>] [<var_name_descr>]
-netconf_mvusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-mv\{up|down|list|usage\}}" \
-		"${2:-<macvlan_iface_name>}"
+	netconf_ifshow "$@"
 }
 
 ##
 ## IPVLAN
 ##
 
-# Usage: netconf_ivup {<var_name>}
-netconf_ivup()
+# Usage: netconf_ipvlan_up {<var_name>}
+netconf_ipvlan_up()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_ivdown {<var_name>}
-netconf_ivdown()
+# Usage: netconf_ipvlan_down {<var_name>}
+netconf_ipvlan_down()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_ivlist {<var_name>}
-netconf_ivlist()
+# Usage: netconf_ipvlan_show {<var_name>}
+netconf_ipvlan_show()
 {
-	netconf_iflist "$@"
-}
-
-# Usage: netconf_ivusage [<action>] [<var_name_descr>]
-netconf_ivusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-iv\{up|down|list|usage\}}" \
-		"${2:-<ipvlan_iface_name>}"
+	netconf_ifshow "$@"
 }
 
 ##
 ## GRE
 ##
 
-# Usage: netconf_gup {<var_name>}
-netconf_gup()
+# Usage: netconf_gre_up {<var_name>}
+netconf_gre_up()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_gdown {<var_name>}
-netconf_gdown()
+# Usage: netconf_gre_down {<var_name>}
+netconf_gre_down()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_glist {<var_name>}
-netconf_glist()
+# Usage: netconf_gre_show {<var_name>}
+netconf_gre_show()
 {
-	netconf_iflist "$@"
-}
-
-# Usage: netconf_gusage [<action>] [<var_name_descr>]
-netconf_gusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-g\{up|down|list|usage\}}" \
-		"${2:-<gre_iface_name>}"
+	netconf_ifshow "$@"
 }
 
 ##
 ## IP6GRE
 ##
 
-# Usage: netconf_g6rup {<var_name>}
-netconf_g6up()
+# Usage: netconf_ip6gre_up {<var_name>}
+netconf_ip6gre_up()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_g6down {<var_name>}
-netconf_g6down()
+# Usage: netconf_ip6gre_down {<var_name>}
+netconf_ip6gre_down()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_g6list {<var_name>}
-netconf_g6list()
+# Usage: netconf_ip6gre_show {<var_name>}
+netconf_ip6gre_show()
 {
-	netconf_iflist "$@"
-}
-
-# Usage: netconf_g6usage [<action>] [<var_name_descr>]
-netconf_g6usage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-g6\{up|down|list|usage\}}" \
-		"${2:-<ip6gre_iface_name>}"
+	netconf_ifshow "$@"
 }
 
 ##
 ## NEIGHBOUR
 ##
 
-# Usage: netconf_ngup <var_name>
-netconf_ngup()
+# Usage: netconf_neighbour_up <var_name>
+netconf_neighbour_up()
 {
 	local var_name="$1"
 	local val
@@ -755,8 +619,8 @@ netconf_ngup()
 	nctl_get_rc
 }
 
-# Usage: netconf_ngdown <var_name>
-netconf_ngdown()
+# Usage: netconf_neighbour_down <var_name>
+netconf_neighbour_down()
 {
 	local var_name="$1"
 	local val
@@ -775,8 +639,8 @@ netconf_ngdown()
 	ip neighbour del dev "$u_if" "$@" &>/dev/null
 }
 
-# Usage: netconf_nglist <var_name>
-netconf_nglist()
+# Usage: netconf_neighbour_show <var_name>
+netconf_neighbour_show()
 {
 	local var_name="$1"
 	local val
@@ -791,15 +655,6 @@ netconf_nglist()
 
 	printf '%s="%s"\n' "$var_name" "$*" 2>&1 |nctl_log_pipe
 	nctl_get_rc
-}
-
-# Usage: netconf_ngusage [<action>] [<var_name_descr>]
-netconf_ngusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-ng\{up|down|list|usage\}}" \
-		"${2:-<neighbour_name>}"
 }
 
 ##
@@ -847,8 +702,8 @@ netconf_get_rtargs()
 	nctl_return "$ret_var_name" "$u_type" "$u_ip" "$@"
 }
 
-# Usage: netconf_rtup <var_name>
-netconf_rtup()
+# Usage: netconf_route_up <var_name>
+netconf_route_up()
 {
 	local var_name="$1"
 	local val
@@ -868,8 +723,8 @@ netconf_rtup()
 	nctl_get_rc
 }
 
-# Usage: netconf_rtdown <var_name>
-netconf_rtdown()
+# Usage: netconf_route_down <var_name>
+netconf_route_down()
 {
 	local var_name="$1"
 	local val
@@ -888,8 +743,8 @@ netconf_rtdown()
 	ip route del "${cmd[@]}" &>/dev/null
 }
 
-# Usage: netconf_rtlist <var_name>
-netconf_rtlist()
+# Usage: netconf_route_show <var_name>
+netconf_route_show()
 {
 	local var_name="$1"
 	local val
@@ -906,21 +761,12 @@ netconf_rtlist()
 	nctl_get_rc
 }
 
-# Usage: netconf_rtusage [<action>] [<var_name_descr>]
-netconf_rtusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-rt\{up|down|list|usage\}}" \
-		"${2:-<route_name>}"
-}
-
 ##
 ## RULE
 ##
 
-# Usage: netconf_reup <var_name>
-netconf_reup()
+# Usage: netconf_rule_up <var_name>
+netconf_rule_up()
 {
 	local var_name="$1"
 	local val
@@ -951,8 +797,8 @@ netconf_reup()
 	nctl_get_rc
 }
 
-# Usage: netconf_redown <var_name>
-netconf_redown()
+# Usage: netconf_rule_down <var_name>
+netconf_rule_down()
 {
 	local var_name="$1"
 	local val
@@ -982,8 +828,8 @@ netconf_redown()
 	ip "$u_family" rule del pref "$u_pref" "$@" &>/dev/null
 }
 
-# Usage: netconf_relist <var_name>
-netconf_relist()
+# Usage: netconf_rule_show <var_name>
+netconf_rule_show()
 {
 	local var_name="$1"
 	local val
@@ -1000,21 +846,12 @@ netconf_relist()
 	nctl_get_rc
 }
 
-# Usage: netconf_reusage [<action>] [<var_name_descr>]
-netconf_reusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-re\{up|down|list|usage\}}" \
-		"${2:-<rule_name>}"
-}
-
 ##
 ## VR
 ##
 
-# Usage: netconf_vrup <var_name>
-netconf_vrup()
+# Usage: netconf_vr_up <var_name>
+netconf_vr_up()
 {
 	# Account actions
 	trap '
@@ -1187,8 +1024,8 @@ netconf_vrup()
 	return $rc
 }
 
-# Usage: netconf_vrdown <var_name>
-netconf_vrdown()
+# Usage: netconf_vr_down <var_name>
+netconf_vr_down()
 {
 	local var_name="$1"
 	local val
@@ -1210,8 +1047,8 @@ netconf_vrdown()
 	fi
 }
 
-# Usage: netconf_vrlist <var_name>
-netconf_vrlist()
+# Usage: netconf_vr_show <var_name>
+netconf_vr_show()
 {
 	local var_name="$1"
 	local val
@@ -1240,111 +1077,71 @@ netconf_vrlist()
 	nctl_get_rc
 }
 
-# Usage: netconf_vrusage [<action>] [<var_name_descr>]
-netconf_vrusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-vr\{up|down|list|usage\}}" \
-		"${2:-<vr_name>}"
-}
-
 ##
 ## Helper functions
 ##
 
-# Usage: netconf_source_files <array_name> <var_name_regex> <file_name_regex> <dir_entry> ...
-netconf_source_files()
-{
-	local nsf_a_name="${1:?missing 1st argument to function \"$FUNCNAME\" (a_name)}"
-	local nsf_var_name_regex="${2:?missing 2d argument to function \"$FUNCNAME\" (var_name_regex)}"
-	local nsf_file_name_regex="${3:?missing 3rd argument to function \"$FUNCNAME\" (file_name_regex)}"
-	shift 3
-	local -a nsf_a_data
-	local -i nsf_a_size
-	local -i nsf_a_i
-	local nsf_eval
-
-	nsf_eval="$IFS"
-	IFS=$'\n'
-	nctl_set_val nsf_a_data \
-	$(
-		find "$@" -maxdepth 1 -regextype 'posix-egrep' \
-			-type f -regex ".*/$nsf_file_name_regex\$" |LC_ALL=C sort -u
-	)
-	IFS="$nsf_eval"
-
-	for ((nsf_a_i = 0, nsf_a_size = ${#nsf_a_data[@]};
-		nsf_a_i < nsf_a_size; nsf_a_i++)); do
-		nctl_SourceIfNotEmpty "${nsf_a_data[$nsf_a_i]}" ||
-			unset nsf_a_data[$nsf_a_i]
-	done
-	[ ${#nsf_a_data[@]} -gt 0 ] || return 0
-
-	nsf_eval="$IFS"
-	IFS=$'\n'
-	nctl_set_val "$nsf_a_name" \
-	$(
-		sed -nE "${nsf_a_data[@]}" \
-			-e '/^[[:space:]]*(#|$)/b' \
-			-e '/[^[:space:]]_(ref|a)[[:digit:]]+=/b' \
-			-e "s/^[[:space:]]*($nsf_var_name_regex)=[\"']?.*['\"]?[[:space:]]*(#|\$)/\1/p"
-	)
-	IFS="$nsf_eval"
-}
-declare -fr netconf_source_files
-
 # Usage: netconf_source [<vlan>...,<rule>,<vr>,...]...
 netconf_source()
 {
-	local -i ns_size
+	local ns_item ns_dir ns_eval ns_regex ns_a_name ns_file
+	local -a ns_files
 	local -i ns_i
 	local -i ns_rc=0
-	local ns_v_name NS_V_NAME
-	local ns_regex ns_regex_f ns_dir
 
-	: ${netconf_dir:="$NETCONF_DIR"}
+	# Need for nctl_set_val() as sed(1) returns variable names split by '\n'
+	ns_eval="$IFS"
+	IFS=$'\n'
 
-	for ((ns_i = 0, ns_size=$#;
-		ns_i < ns_size; ns_i++)); do
-		ns_v_name="$1"
+	while [ $# -gt 0 ]; do
+		ns_item="$1"
 		shift
 
-		# Adjst configuration for known subsystems, ignore unknown/empty.
+		# Skip empty items
+		[ -n "$ns_item" ] || continue
 
-		# empty
-		if [ -z "$ns_v_name" ]; then
-			continue
-		fi
-		# unknown
-		if [ -n "${netconf_item_mtch##*|$ns_v_name|*}" ]; then
-			: $((ns_rc++))
-			break
-		fi
+		# Fail on unknown item
+		[ -z "${netconf_items_mtch##*|$ns_item|*}" ] ||
+			{ ns_rc=$? && break; }
 
-		nctl_strtoupper "$ns_v_name" NS_V_NAME
+		# Skip non-existent directories
+		ns_dir="$netconf_dir/$ns_item"
 
-		eval "netconf_${ns_v_name}_list=()"
-		eval ": \${netconf_${ns_v_name}_regex:=\"\$NETCONF_${NS_V_NAME}_REGEX\"}"
-		eval ": \${netconf_${ns_v_name}_regex_f:=\"\$NETCONF_${NS_V_NAME}_REGEX_F\"}"
+		[ -d "$ns_dir" ] || continue
 
-		# Get variable name regex
-		nctl_get_val "netconf_${ns_v_name}_regex" ns_regex ||
-			continue
-		# Get file name regex
-		nctl_get_val "netconf_${ns_v_name}_regex_f" ns_regex_f ||
-			continue
-		# Get directory/file name
-		ns_dir="$netconf_dir/$ns_v_name" && [ -d "$ns_dir" ] ||
-			continue
-		# Source file(s)
-		netconf_source_files \
-			"netconf_${ns_v_name}_list" \
-			"$ns_regex" \
-			"$ns_regex_f" \
-			"$ns_dir" ||
-		nctl_inc_rc ns_rc
+		# Source file(s) and variable names
+		ns_files=()
+		ns_i=0
+
+		for ns_file in "$ns_dir"/*; do
+			[ -f "$ns_file" -a -r "$ns_file" -a -s "$ns_file" ] ||
+				continue
+
+			. "$ns_file" || { ns_rc=$? && break 2; }
+
+			ns_files[$((ns_i++))]="$ns_file"
+		done
+
+		# Populate array with variable names
+		ns_a_name="netconf_${ns_item}_list"
+		eval "$ns_a_name=()"
+
+		ns_regex="${ns_item}_[[:alnum:]_]+"
+
+		nctl_set_val "$ns_a_name" \
+		$(
+			# Subshell resets IFS value
+			IFS=$'\n'
+
+			echo "${ns_files[*]}" |\
+			xargs sed -nE \
+				-e '/^[[:space:]]*(#|$)/b' \
+				-e '/^[[:space:]]*[^[:space:]]+_(ref|a)[[:digit:]]+=/b' \
+				-e "s/^[[:space:]]*($ns_regex)=[\"']?[[:space:]]*[^[:space:]'\"]+.*['\"]?[[:space:]]*(#|\$)/\1/p"
+		)
 	done
+
+	IFS="$ns_eval"
 
 	return $ns_rc
 }
@@ -1357,6 +1154,7 @@ declare -fr netconf_source
 ### Global items default list and string to check item presence
 
 declare -ar netconf_items_dflt=(
+	# Note that order specifies start/up order
 	'ifb'
 	'vrf'
 	'bridge'
@@ -1378,12 +1176,38 @@ declare -ar netconf_items_dflt=(
 	'vr'
 )
 declare -ir netconf_items_dflt_size=${#netconf_items_dflt[@]}
+declare -ir netconf_item_name_max=9 # neighbour, ip6gretap
 
 nctl_args2pat 'netconf_items_mtch' '|' "${netconf_items_dflt[@]}"
 declare -r netconf_items_mtch
 
+# Taken from ip-link(8)
+declare -r netconf_item_ifb_desc='Intermediate Functional Block device'
+declare -r netconf_item_vrf_desc='Interface for L3 VRF domains'
+declare -r netconf_item_bridge_desc='Ethernet Bridge device'
+declare -r netconf_item_bond_desc='Bonding device can'
+declare -r netconf_item_host_desc='Existing host interface (e.g. physical NIC) interface'
+declare -r netconf_item_dummy_desc='Dummy network interface'
+declare -r netconf_item_veth_desc='Virtual ethernet interface'
+declare -r netconf_item_gretap_desc='Virtual L2 tunnel interface GRE over IPv4'
+declare -r netconf_item_ip6gretap_desc='Virtual L2 tunnel interface GRE over IPv6'
+declare -r netconf_item_vxlan_desc='Virtual eXtended LAN'
+declare -r netconf_item_vlan_desc='802.1q tagged virtual LAN interface'
+declare -r netconf_item_macvlan_desc='Virtual interface based on link layer address (MAC)'
+declare -r netconf_item_ipvlan_desc='Interface for L3 (IPv6/IPv4) based VLANs'
+declare -r netconf_item_gre_desc='Virtual tunnel interface GRE over IPv4'
+declare -r netconf_item_ip6gre_desc='Virtual tunnel interface GRE over IPv6'
+
+# Taken from ip-neighbour(8), ip-route(8) and ip-rule(8)
+declare -r netconf_item_neighbour_desc='Neighbour tables entries'
+declare -r netconf_item_route_desc='Routing tables entries'
+declare -r netconf_item_rule_desc='Routing policy database entries'
+
+# Own description, ip-netns(8)
+declare -r netconf_item_vr_desc='Virtual Router based on network namespaces'
+
 # Netconf base directory.
-: ${NETCONF_DIR:="$NCTL_PREFIX/etc/netconf"}
+: ${netconf_dir:="$NCTL_PREFIX/etc/netconf"}
 
 # Open accounting file. We cant rely on automatic opening by netconf_account()
 # because race condition might occur and NCTL_LOGFILE_FD == NCTL_ACCOUNT_FD.
@@ -1391,6 +1215,3 @@ declare -r netconf_items_mtch
 # TODO: implement synchronization facilities
 #
 nctl_openaccount ||:
-
-# Source configuration
-netconf_source "$@"
