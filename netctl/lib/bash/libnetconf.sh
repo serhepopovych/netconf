@@ -266,6 +266,37 @@ netconf_iflist()
 declare -fr netconf_iflist
 
 ##
+## IFB
+##
+
+# Usage: netconf_ibup {<var_name>}
+netconf_ibup()
+{
+	netconf_ifup "$@"
+}
+
+# Usage: netconf_ibdown {<var_name>}
+netconf_ibdown()
+{
+	netconf_ifdown "$@"
+}
+
+# Usage: netconf_iblist {<var_name>}
+netconf_iblist()
+{
+	netconf_iflist "$@"
+}
+
+# Usage: netconf_ibusage [<action>] [<var_name_descr>]
+netconf_ibusage()
+{
+	nctl_log_msg 'usage: %s %s %s...\n' \
+		"$program_invocation_short_name" \
+		"${1:-ib\{up|down|list|usage\}}" \
+		"${2:-<ifb_iface_name>}"
+}
+
+##
 ## VRF
 ##
 
@@ -697,37 +728,6 @@ netconf_g6usage()
 		"$program_invocation_short_name" \
 		"${1:-g6\{up|down|list|usage\}}" \
 		"${2:-<ip6gre_iface_name>}"
-}
-
-##
-## IFB
-##
-
-# Usage: netconf_ibup {<var_name>}
-netconf_ibup()
-{
-	netconf_ifup "$@"
-}
-
-# Usage: netconf_ibdown {<var_name>}
-netconf_ibdown()
-{
-	netconf_ifdown "$@"
-}
-
-# Usage: netconf_iblist {<var_name>}
-netconf_iblist()
-{
-	netconf_iflist "$@"
-}
-
-# Usage: netconf_ibusage [<action>] [<var_name_descr>]
-netconf_ibusage()
-{
-	nctl_log_msg 'usage: %s %s %s...\n' \
-		"$program_invocation_short_name" \
-		"${1:-ib\{up|down|list|usage\}}" \
-		"${2:-<ifb_iface_name>}"
 }
 
 ##
@@ -1357,6 +1357,7 @@ declare -fr netconf_source
 ### Global items default list and string to check item presence
 
 declare -ar netconf_items_dflt=(
+	'ifb'
 	'vrf'
 	'bridge'
 	'bond'
@@ -1371,7 +1372,6 @@ declare -ar netconf_items_dflt=(
 	'ipvlan'
 	'gre'
 	'ip6gre'
-	'ifb'
 	'neighbour'
 	'route'
 	'rule'
