@@ -220,7 +220,7 @@ usage: %s {start|stop|list} [<item>...]
 
 	if [ "${FUNCNAME[1]}" != "help" ]; then
 		printf >&$NCTL_STDERR '
-Use "%s help" to get more information.
+Use "%s help" and "%s help <item>..." to get more information.
 
 ' \
 			"$program_invocation_short_name" \
@@ -234,11 +234,29 @@ Use "%s help" to get more information.
 help()
 {
 	local -i rc=$?
-	local item item_desc
 
 	usage
 
-	cat >&$NCTL_STDERR <<'_EOF'
+	if [ $# -gt 0 ]; then
+		local func FUNC
+
+		while [ $# -gt 0 ]; do
+			func="netconf_${1}_help"
+
+			if nctl_is_function "$func"; then
+				eval "$func"
+			else
+				echo >&$NCTL_STDERR '
+Help details is not available.
+'
+			fi
+
+			shift
+		done
+	else
+		local item item_desc
+
+		cat >&$NCTL_STDERR <<'_EOF'
 
 where
     <item> is space separated list of one or more of netconf
@@ -246,19 +264,20 @@ where
 
 _EOF
 
-	for item in "${netconf_items_dflt[@]}"; do
-		eval item_desc="\$netconf_item_${item}_desc"
-		printf >&$NCTL_STDERR '%10s%-*s - %s\n' \
-			'' $netconf_item_name_max "$item" "$item_desc"
-	done
+		for item in "${netconf_items_dflt[@]}"; do
+			eval item_desc="\$netconf_item_${item}_desc"
+			printf >&$NCTL_STDERR '%10s%-*s - %s\n' \
+				'' $netconf_item_name_max "$item" "$item_desc"
+		done
 
-	cat >&$NCTL_STDERR <<'_EOF'
+		cat >&$NCTL_STDERR <<'_EOF'
 
     <var> is space separated list of variables names to perform
         action on, taken from one or more configuration <item>s
         above.
 
 _EOF
+	fi
 
 	return $rc
 }
@@ -286,9 +305,6 @@ case "$netconf_action" in
 		IFS="${_IFS}"
 
 		netconf_argv_size=${#netconf_argv[@]}
-
-		# Remove items from command line arguments
-		set --
 		;;
 	up|down|show)
 		# Stop match as soon as first non-item is seen (empty first arg - var)
@@ -319,7 +335,17 @@ case "$netconf_action" in
 		$(IFS=''; [ -n "$*" ]) || exit 0
 		;;
 	help|usage)
-		"$netconf_action"
+		# Fail as soon as first non-item is seen (empty first arg - var)
+		netconf_argv="$(nctl_mtch4pat '' '|' "$netconf_items_mtch" "$@")" ||
+			usage || exit
+
+		# Turn into array ('\n' as word split)
+		_IFS="$IFS"
+		IFS=$'\n'
+		nctl_set_val 'netconf_argv' $netconf_argv
+		IFS="${_IFS}"
+
+		"$netconf_action" "${netconf_argv[@]}"
 		exit $NCTL_EXIT_SUCCESS
 		;;
 	*)
