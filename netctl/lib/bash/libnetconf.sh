@@ -91,6 +91,9 @@ netconf_for_each_elem()
 		shift
 		[ -n "$elem" ] || continue
 
+		# Skip elements managed by user config
+		[ -n "${netconf_user_map##*|$elem|*}" ] || continue
+
 		eval refs="\${!${elem}_ref*}"
 		# for compatibility only
 		eval addrs="\${!${elem}_a*}"
@@ -1105,57 +1108,131 @@ netconf_vr_show()
 }
 
 ##
+## USER
+##
+
+# Usage: netconf_user_for_each_elem <action> <var_name>
+netconf_user_for_each_elem()
+{
+	local action="${1:?missing 1st argument to function \"$FUNCNAME\"}"
+	local var_name="$2"
+	local val
+
+	eval "val=\"\$$var_name\""
+	[ -n "$val" ] || return 0
+
+	# Account actions
+	trap '
+		local netconf_fn="${FUNCNAME[1]}"
+		netconf_account "$var_name" "$val"
+		trap - RETURN
+	' RETURN
+
+	# Process user config elements
+	local netconf_user_map='|'
+
+	netconf_for_each_elem "$action" $val
+}
+
+# Usage: netconf_user_up <var_name>
+netconf_user_up()
+{
+	netconf_user_for_each_elem 'up' "$1"
+}
+
+# Usage: netconf_user_down <var_name>
+netconf_user_down()
+{
+	netconf_user_for_each_elem 'down' "$1"
+}
+
+# Usage: netconf_user_show <var_name>
+netconf_user_show()
+{
+	netconf_user_for_each_elem 'show' "$1"
+}
+
+##
 ## Helper functions
 ##
 
 # Usage: netconf_source [<vlan>...,<rule>,<vr>,...]...
 netconf_source()
 {
-	local ns_item ns_dir ns_eval ns_regex ns_a_name ns_file
 	local -a ns_files
-	local -i ns_i
-	local -i ns_rc=0
+	local -i ns_file_idx=0 ns_var_idx=0
+	local ns_item ns_var ns_dir ns_file ns_regex ns_eval ns_tmp
 
-	# Need for nctl_set_val() as sed(1) returns variable names split by '\n'
+	# Need for substitution when iterating over variables names and set arguments
 	ns_eval="$IFS"
-	IFS=$'\n'
 
-	while [ $# -gt 0 ]; do
-		ns_item="$1"
-		shift
+	# Get arguments to pattern string excluding duplicates
+	nctl_mtch4pat 'ns_regex' '|' "$netconf_items_mtch" "$@" || return
+	nctl_args2pat 'ns_regex' '|' "${ns_regex[@]}"
 
-		# Skip empty items
-		[ -n "$ns_item" ] || continue
+	# Initialize all arrays
+	for ns_item in "${netconf_items_dflt[@]}"; do
+		eval "netconf_${ns_item}_list=()"
+	done
 
-		# Fail on unknown item
-		[ -z "${netconf_items_mtch##*|$ns_item|*}" ] ||
-			{ ns_rc=$? && break; }
+	# Move user configuration to the end to support variable overwrites
+	if [ -z "${ns_regex##*|user|*}" ]; then
+		ns_regex="${ns_regex/|user/}"
+		ns_regex="${ns_regex}user"
 
+		netconf_user_list='|'
+	else
+		ns_regex="${ns_regex%|}"
+	fi
+
+	# Map is used to check if user config overrides variable
+	netconf_user_map='|'
+
+	ns_regex="${ns_regex#|}"
+
+	# Put to arguments back
+	IFS='|'
+
+	set -- $ns_regex
+
+	IFS="$ns_eval"
+
+	# Process arguments
+	for ns_item in "$@"; do
 		# Skip non-existent directories
 		ns_dir="$netconf_dir/$ns_item"
 
 		[ -d "$ns_dir" ] || continue
 
-		# Source file(s) and variable names
+		# Source file(s)
 		ns_files=()
-		ns_i=0
+		ns_file_idx=0
 
 		for ns_file in "$ns_dir"/*; do
 			[ -f "$ns_file" -a -r "$ns_file" -a -s "$ns_file" ] ||
 				continue
 
-			. "$ns_file" || { ns_rc=$? && break 2; }
+			. "$ns_file" || return
 
-			ns_files[$((ns_i++))]="$ns_file"
+			ns_files[$((ns_file_idx++))]="$ns_file"
 		done
 
-		# Populate array with variable names
-		ns_a_name="netconf_${ns_item}_list"
-		eval "$ns_a_name=()"
+		# Skip when nothing is sourced
+		[ $ns_file_idx -gt 0 ] || continue
 
-		ns_regex="${ns_item}_[[:alnum:]_]+"
+		# Source variable(s)
+		if [ "$ns_item" = 'user' ]; then
+			# |user| assumed to be the last one
+			ns_regex="${netconf_items_mtch%|user|}"
+		else
+			ns_regex="$ns_item"
+		fi
 
-		nctl_set_val "$ns_a_name" \
+		ns_regex="(${ns_regex})_[[:alnum:]]+"
+
+		IFS=$'\n'
+
+		for ns_var in \
 		$(
 			# Subshell resets IFS value
 			IFS=$'\n'
@@ -1166,11 +1243,47 @@ netconf_source()
 				-e '/^[[:space:]]*[^[:space:]]+_(ref|a)[[:digit:]]+=/b' \
 				-e "s/^[[:space:]]*($ns_regex)=[\"']?[[:space:]]*[^[:space:]'\"]+.*['\"]?[[:space:]]*(#|\$)/\1/p"
 		)
+		do
+			# Note that element indexing isn't contiguous
+			eval "netconf_${ns_var%%_*}_list[\$((ns_var_idx++))]='$ns_var'"
+
+			[ "$ns_item" = 'user' ] || continue
+
+			# Use pattern match to exclude duplicates
+			ns_tmp="user_${ns_var#*_}"
+			[ -z "${netconf_user_list##*|$ns_tmp|*}" ] ||
+				netconf_user_list="$netconf_user_list$ns_tmp|"
+
+			# Create map of user managed variables
+			netconf_user_map="$netconf_user_map$ns_var|"
+
+			# Value is a list of item(s) variable names
+			eval "$ns_tmp=\"\$$ns_tmp\$ns_var \""
+		done
+
+		IFS="$ns_eval"
 	done
 
-	IFS="$ns_eval"
+	# Turn pattern into array
+	netconf_user_list="${netconf_user_list%|}"
 
-	return $ns_rc
+	if [ -n "$netconf_user_list" ]; then
+		netconf_user_list="${netconf_user_list#|}"
+
+		IFS='|'
+
+		netconf_user_list=($netconf_user_list)
+
+		IFS="$ns_eval"
+	fi
+
+	# Unset empty arrays to keep global namespace clean
+	for ns_item in "$@"; do
+		eval "ns_tmp=\${#netconf_${ns_item}_list[@]}"
+		[ $ns_tmp -gt 0 ] || eval "unset netconf_${ns_item}_list"
+	done
+
+	return 0
 }
 declare -fr netconf_source
 
@@ -1201,6 +1314,8 @@ declare -ar netconf_items_dflt=(
 	'route'
 	'rule'
 	'vr'
+	# This should be the last one (see netconf_source())
+	'user'
 )
 declare -ir netconf_items_dflt_size=${#netconf_items_dflt[@]}
 declare -ir netconf_item_name_max=9 # neighbour, ip6gretap
@@ -1232,6 +1347,9 @@ declare -r netconf_item_rule_desc='Routing policy database entries'
 
 # Own description, ip-netns(8)
 declare -r netconf_item_vr_desc='Virtual Router based on network namespaces'
+
+# Include all items in single configuration file
+declare -r netconf_item_user_desc='User specific configuration files'
 
 # Netconf base directory.
 : ${netconf_dir:="$NCTL_PREFIX/etc/netconf"}
