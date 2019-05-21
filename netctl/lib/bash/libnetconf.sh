@@ -359,34 +359,34 @@ netconf_bnusage()
 }
 
 ##
-## PHYS
+## HOST
 ##
 
-# Usage: netconf_phup {<var_name>}
-netconf_phup()
+# Usage: netconf_htup {<var_name>}
+netconf_htup()
 {
 	netconf_ifup "$@"
 }
 
-# Usage: netconf_phdown {<var_name>}
-netconf_phdown()
+# Usage: netconf_htdown {<var_name>}
+netconf_htdown()
 {
 	netconf_ifdown "$@"
 }
 
-# Usage: netconf_phlist {<var_name>}
-netconf_phlist()
+# Usage: netconf_htlist {<var_name>}
+netconf_htlist()
 {
 	netconf_iflist "$@"
 }
 
-# Usage: netconf_phusage [<action>] [<var_name_descr>]
-netconf_phusage()
+# Usage: netconf_htusage [<action>] [<var_name_descr>]
+netconf_htusage()
 {
 	nctl_log_msg 'usage: %s %s %s...\n' \
 		"$program_invocation_short_name" \
-		"${1:-ph\{up|down|list|usage\}}" \
-		"${2:-<phys_iface_name>}"
+		"${1:-ht\{up|down|list|usage\}}" \
+		"${2:-<host_iface_name>}"
 }
 
 ##
@@ -1076,11 +1076,11 @@ netconf_vrup()
 					netconf_source 'vlan'
 				;;
 			en*|eth*)
-				## PHYS
+				## HOST
 
 				# Load configuration if not already done
-				nctl_is_empty_var 'netconf_phys_list' &&
-					netconf_source 'phys'
+				nctl_is_empty_var 'netconf_host_list' &&
+					netconf_source 'host'
 				;;
 			dmy*|lo*)
 				## DUMMY
@@ -1360,7 +1360,7 @@ declare -ar netconf_items_dflt=(
 	'vrf'
 	'bridge'
 	'bond'
-	'phys'
+	'host'
 	'dummy'
 	'veth'
 	'gretap'

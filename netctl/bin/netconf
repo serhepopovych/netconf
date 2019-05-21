@@ -21,7 +21,7 @@ declare -a crt1_request_tools_list=()
 #			 vfup|vfdown|vflist|\
 #			 brup|brdown|brlist|\
 #			 bnup|bndown|bnlist|\
-#			 phup|phdown|phlist|\
+#			 htup|htdown|htlist|\
 #			 dmup|dmdown|dmlist|\
 #			 vzup|vzdown|vzlist|\
 #			 gtup|gtdown|gtlist|\
@@ -54,8 +54,8 @@ __netconf_action()
 			# Up BOND
 			"$FUNCNAME" bnup "${netconf_bond_list[@]}" || nctl_inc_rc rc
 
-			# Up PHYS
-			"$FUNCNAME" phup "${netconf_phys_list[@]}" || nctl_inc_rc rc
+			# Up HOST
+			"$FUNCNAME" htup "${netconf_host_list[@]}" || nctl_inc_rc rc
 
 			# Up DUMMY
 			"$FUNCNAME" dmup "${netconf_dummy_list[@]}" || nctl_inc_rc rc
@@ -148,8 +148,8 @@ __netconf_action()
 			# Down DUMMY
 			"$FUNCNAME" dmdown "${netconf_dummy_list[@]}" || nctl_inc_rc rc
 
-			# Down PHYS
-			"$FUNCNAME" phdown "${netconf_phys_list[@]}" || nctl_inc_rc rc
+			# Down HOST
+			"$FUNCNAME" htdown "${netconf_host_list[@]}" || nctl_inc_rc rc
 
 			# Down BOND
 			"$FUNCNAME" bndown "${netconf_bond_list[@]}" || nctl_inc_rc rc
@@ -177,8 +177,8 @@ __netconf_action()
 			# List BOND
 			"$FUNCNAME" bnlist "${netconf_bond_list[@]}" || nctl_inc_rc rc
 
-			# List PHYS
-			"$FUNCNAME" phlist "${netconf_phys_list[@]}" || nctl_inc_rc rc
+			# List HOST
+			"$FUNCNAME" htlist "${netconf_host_list[@]}" || nctl_inc_rc rc
 
 			# List DUMMY
 			"$FUNCNAME" dmlist "${netconf_dummy_list[@]}" || nctl_inc_rc rc
@@ -228,7 +228,7 @@ __netconf_action()
 		vfup|vfdown|vflist|\
 		brup|brdown|brlist|\
 		bnup|bndown|bnlist|\
-		phup|phdown|phlist|\
+		htup|htdown|htlist|\
 		dmup|dmdown|dmlist|\
 		vzup|vzdown|vzlist|\
 		gtup|gtdown|gtlist|\
@@ -285,7 +285,7 @@ __netconf_action()
 usage()
 {
 	printf >&$NCTL_STDERR \
-'usage: %s {start|stop|restart|list} [vrf|bridge|bond|physical|dummy|veth|
+'usage: %s {start|stop|restart|list} [vrf|bridge|bond|host|dummy|veth|
 	gretap|ip6gretap|vxlan|vlan|macvlan|ipvlan|gre|ip6gre|ifb|
 	neighbour|route|rule|vr] ...
 
@@ -295,7 +295,7 @@ usage()
 
        %s {bnup|bndown|bnlist}    {bond interface|help|usage} ...
 
-       %s {phup|phdown|phlist}    {physical interface|help|usage} ...
+       %s {htup|htdown|htlist}    {host interface|help|usage} ...
 
        %s {dmup|dmdown|dmlist}    {dummy interface|help|usage} ...
 
@@ -389,7 +389,7 @@ declare -a netconf_argv
 # See how we were called
 case "$NETCONF_ACTION" in
 	start|stop|restart|list)
-		# Load VRF, BRIDGE, BOND, PHYS, DUMMY, VETH,
+		# Load VRF, BRIDGE, BOND, HOST, DUMMY, VETH,
 		# GRETAP, IP6GRETAP, VXLAN, VLAN, MACVLAN, IPVLAN,
 		# GRE, IP6GRE, IFB, NEIGHBOUR, ROUTE, RULE and VR configs
 		netconf_items netconf_argv "$@"
@@ -407,9 +407,9 @@ case "$NETCONF_ACTION" in
 		# Load only BOND related configs
 		netconf_argv=('bond')
 		;;
-	phup|phdown|phlist)
-		# Load only PHYS related configs
-		netconf_argv=('phys')
+	htup|htdown|htlist)
+		# Load only HOST related configs
+		netconf_argv=('host')
 		;;
 	dmup|dmdown|dmlist)
 		# Load only DUMMY related configs
