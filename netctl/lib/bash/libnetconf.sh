@@ -52,7 +52,7 @@ netconf_account()
 
 	# command
 	local command
-	command="${FUNCNAME[1]:-$FUNCNAME}"
+	command="${netconf_fn:-${FUNCNAME[1]:-$FUNCNAME}}"
 	command="${command#netconf_}"
 
 	# object
@@ -78,66 +78,26 @@ declare -fr netconf_account
 ## Helper functions
 ##
 
-# Usage: netconf_usage [<action>]
-netconf_usage()
-{
-	local -i rc=$?
-
-	local a="${1:-${FUNCNAME[1]}}"
-	a="${a#netconf_}"
-	[ -n "$a" ] || exit $rc
-
-	local __shopt=`shopt -p extglob`
-	shopt -s extglob
-	local action="${a%@(up|down|list|usage)}"
-	eval "$__shopt"
-	[ -n "$action" ] || exit $rc
-
-	action="netconf_${action}usage"
-	nctl_is_function "$action" && "$action" "$a"
-
-	exit $rc
-}
-declare -fr netconf_usage
-
-# Usage: netconf_get_val <var_get> [<var>] [<index>]
-netconf_get_val()
-{
-	local ngv_var_get="$1"
-	[ -n "$ngv_var_get" ] || netconf_usage
-	local -i ngv_rc=0
-
-	ngv__nctl_get_val_check()
-	{
-		[ -n "$nctl_get_val_val" ] ||
-			nctl_log_msg 'empty or unset variable %s\n' \
-				"$ngv_var_get"
-	}
-	nctl_get_val_check='ngv__nctl_get_val_check' \
-		nctl_get_val "$@" || nctl_inc_rc ngv_rc
-
-	# Remove internal function from global namespace
-	unset -f ngv__nctl_get_val_check
-
-	return $ngv_rc
-}
-declare -fr netconf_get_val
-
 # Path to /[s]ys/[c]lass/[n]et directory.
 declare -r NCTL_SCN_DIR="$NCTL_SYS_DIR/class/net"
 
 # Usage: netconf_ifup {<var_name>}
 netconf_ifup()
 {
-	# Account actions
-	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
-
 	local var_name="$1"
-
 	local val
-	netconf_get_val "$var_name" val || return
 
-	eval set -- $val
+	eval "val=\"\$$var_name\""
+	[ -n "$val" ] || return 0
+
+	# Account actions
+	trap '
+		local netconf_fn="${FUNCNAME[1]}"
+		netconf_account "$var_name" "$val"
+		trap - RETURN
+	' RETURN
+
+	set -- $val
 
 	local u_if="$1"
 	shift
@@ -221,15 +181,20 @@ declare -fr netconf_ifup
 # Usage: netconf_ifdown {<var_name>}
 netconf_ifdown()
 {
-	# Account actions
-	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
-
 	local var_name="$1"
-
 	local val
-	netconf_get_val "$var_name" val || return
 
-	eval set -- $val
+	eval "val=\"\$$var_name\""
+	[ -n "$val" ] || return 0
+
+	# Account actions
+	trap '
+		local netconf_fn="${FUNCNAME[1]}"
+		netconf_account "$var_name" "$val"
+		trap - RETURN
+	' RETURN
+
+	set -- $val
 
 	local u_if="$1"
 	shift
@@ -280,13 +245,18 @@ declare -fr netconf_ifdown
 # Usage: netconf_iflist {<var_name>}
 netconf_iflist()
 {
-	# Account actions
-	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
-
 	local var_name="$1"
-
 	local val
-	netconf_get_val "$var_name" val || return
+
+	eval "val=\"\$$var_name\""
+	[ -n "$val" ] || return 0
+
+	# Account actions
+	trap '
+		local netconf_fn="${FUNCNAME[1]}"
+		netconf_account "$var_name" "$val"
+		trap - RETURN
+	' RETURN
 
 	set -- $val
 
@@ -767,15 +737,16 @@ netconf_ibusage()
 # Usage: netconf_ngup <var_name>
 netconf_ngup()
 {
+	local var_name="$1"
+	local val
+
+	eval "val=\"\$$var_name\""
+	[ -n "$val" ] || return 0
+
 	# Account actions
 	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
 
-	local var_name="$1"
-
-	local val
-	netconf_get_val "$var_name" val || return
-
-	eval set -- $val
+	set -- $val
 
 	local u_if="$1"
 	shift
@@ -787,15 +758,16 @@ netconf_ngup()
 # Usage: netconf_ngdown <var_name>
 netconf_ngdown()
 {
+	local var_name="$1"
+	local val
+
+	eval "val=\"\$$var_name\""
+	[ -n "$val" ] || return 0
+
 	# Account actions
 	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
 
-	local var_name="$1"
-
-	local val
-	netconf_get_val "$var_name" val || return
-
-	eval set -- $val
+	set -- $val
 
 	local u_if="$1"
 	shift
@@ -806,13 +778,14 @@ netconf_ngdown()
 # Usage: netconf_nglist <var_name>
 netconf_nglist()
 {
+	local var_name="$1"
+	local val
+
+	eval "val=\"\$$var_name\""
+	[ -n "$val" ] || return 0
+
 	# Account actions
 	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
-
-	local var_name="$1"
-
-	local val
-	netconf_get_val "$var_name" val || return
 
 	set -- $val
 
@@ -877,15 +850,16 @@ netconf_get_rtargs()
 # Usage: netconf_rtup <var_name>
 netconf_rtup()
 {
+	local var_name="$1"
+	local val
+
+	eval "val=\"\$$var_name\""
+	[ -n "$val" ] || return 0
+
 	# Account actions
 	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
 
-	local var_name="$1"
-
-	local val
-	netconf_get_val "$var_name" val || return
-
-	eval set -- $val
+	set -- $val
 
 	local -a cmd
 	netconf_get_rtargs "$var_name" cmd "$@" || return
@@ -897,15 +871,16 @@ netconf_rtup()
 # Usage: netconf_rtdown <var_name>
 netconf_rtdown()
 {
+	local var_name="$1"
+	local val
+
+	eval "val=\"\$$var_name\""
+	[ -n "$val" ] || return 0
+
 	# Account actions
 	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
 
-	local var_name="$1"
-
-	local val
-	netconf_get_val "$var_name" val || return
-
-	eval set -- $val
+	set -- $val
 
 	local -a cmd
 	netconf_get_rtargs "$var_name" cmd "$@" || return
@@ -916,13 +891,14 @@ netconf_rtdown()
 # Usage: netconf_rtlist <var_name>
 netconf_rtlist()
 {
+	local var_name="$1"
+	local val
+
+	eval "val=\"\$$var_name\""
+	[ -n "$val" ] || return 0
+
 	# Account actions
 	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
-
-	local var_name="$1"
-
-	local val
-	netconf_get_val "$var_name" val || return
 
 	set -- $val
 
@@ -946,15 +922,16 @@ netconf_rtusage()
 # Usage: netconf_reup <var_name>
 netconf_reup()
 {
+	local var_name="$1"
+	local val
+
+	eval "val=\"\$$var_name\""
+	[ -n "$val" ] || return 0
+
 	# Account actions
 	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
 
-	local var_name="$1"
-
-	local val
-	netconf_get_val "$var_name" val || return
-
-	eval set -- $val
+	set -- $val
 
 	local u_family="$1"
 	case "$u_family" in
@@ -977,15 +954,16 @@ netconf_reup()
 # Usage: netconf_redown <var_name>
 netconf_redown()
 {
+	local var_name="$1"
+	local val
+
+	eval "val=\"\$$var_name\""
+	[ -n "$val" ] || return 0
+
 	# Account actions
 	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
 
-	local var_name="$1"
-
-	local val
-	netconf_get_val "$var_name" val || return
-
-	eval set -- $val
+	set -- $val
 
 	local u_family="$1"
 	case "$u_family" in
@@ -1007,13 +985,14 @@ netconf_redown()
 # Usage: netconf_relist <var_name>
 netconf_relist()
 {
+	local var_name="$1"
+	local val
+
+	eval "val=\"\$$var_name\""
+	[ -n "$val" ] || return 0
+
 	# Account actions
 	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
-
-	local var_name="$1"
-
-	local val
-	netconf_get_val "$var_name" val || return
 
 	set -- $val
 
@@ -1049,12 +1028,20 @@ netconf_vrup()
 	local u_name u_if u_dir u_rules
 
 	local var_name="$1"
-
 	local val
-	netconf_get_val "$var_name" val ||
-		nctl_inc_rc rc || return $rc
 
-	eval set -- $val
+	eval "val=\"\$$var_name\""
+	[ -n "$val" ] || return 0
+
+	# Account actions
+	trap '
+		netconf_account "$var_name" "$val"
+		[ $rc -eq 0 ] || [ ! -e "/var/run/netns/$u_name" ] ||
+			ip netns del "$u_name"
+		trap - RETURN
+	' RETURN
+
+	set -- $val
 
 	u_name="$1"
 	u_dir="$netconf_dir/vr/$u_name"
@@ -1203,15 +1190,16 @@ netconf_vrup()
 # Usage: netconf_vrdown <var_name>
 netconf_vrdown()
 {
+	local var_name="$1"
+	local val
+
+	eval "val=\"\$$var_name\""
+	[ -n "$val" ] || return 0
+
 	# Account actions
 	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
 
-	local var_name="$1"
-
-	local val
-	netconf_get_val "$var_name" val || return
-
-	eval set -- $val
+	set -- $val
 
 	local u_name="$1"
 
@@ -1225,13 +1213,14 @@ netconf_vrdown()
 # Usage: netconf_vrlist <var_name>
 netconf_vrlist()
 {
+	local var_name="$1"
+	local val
+
+	eval "val=\"\$$var_name\""
+	[ -n "$val" ] || return 0
+
 	# Account actions
 	trap 'netconf_account "$var_name" "$val"; trap - RETURN' RETURN
-
-	local var_name="$1"
-
-	local val
-	netconf_get_val "$var_name" val || return
 
 	set -- $val
 
