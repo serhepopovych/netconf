@@ -59,34 +59,6 @@ netconf_reorder_show()
 	netconf_reorder_up "$@"
 }
 
-# Usage: netconf_for_each_elem <action> <item> <elem>...
-netconf_for_each_elem()
-{
-	local action="${1:?missing 1st argument to \"$FUNCNAME\" (action)}"
-	local item="${2:?missing 2d argument to \"$FUNCNAME\" (item)}"
-	shift 2
-
-	local elem refs addrs
-	local -i rc=0
-
-	while [ $# -gt 0 ]; do
-		elem="$1"
-		shift
-		[ -n "$elem" ] || continue
-
-		eval refs="\${!${elem}_ref*}"
-		# for compatibility only
-		eval addrs="\${!${elem}_a*}"
-
-		nctl_action_for_each \
-			"netconf_${item}_${action}" \
-			"$elem" $refs $addrs ||
-		: $((rc += $?))
-	done
-
-	return $rc
-}
-
 # Usage: netconf_for_each_all <action>
 netconf_for_each_all()
 {
@@ -102,7 +74,6 @@ netconf_for_each_all()
 	for item in "${netconf_argv[@]}"; do
 		eval "netconf_for_each_elem \
 			'$action' \
-			'$item' \
 			\"\${netconf_${item}_list[@]}\"" ||
 		: $((rc += $?))
 	done
@@ -177,7 +148,6 @@ netconf_for_each_arg()
 	for item in "${netconf_argv[@]}"; do
 		eval "netconf_for_each_elem \
 			'$action' \
-			'$item' \
 			\"\${elems_${item}[@]}\"" ||
 		: $((rc += $?))
 	done

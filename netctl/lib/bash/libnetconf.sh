@@ -77,6 +77,33 @@ declare -fr netconf_account
 ## Helper functions
 ##
 
+# Usage: netconf_for_each_elem <action> <elem>...
+netconf_for_each_elem()
+{
+	local action="${1:?missing 1st argument to \"$FUNCNAME\" (action)}"
+	shift
+
+	local elem item refs addrs
+	local -i rc=0
+
+	while [ $# -gt 0 ]; do
+		elem="$1"
+		shift
+		[ -n "$elem" ] || continue
+
+		eval refs="\${!${elem}_ref*}"
+		# for compatibility only
+		eval addrs="\${!${elem}_a*}"
+
+		nctl_action_for_each \
+			"netconf_${elem%%_*}_${action}" \
+			"$elem" $refs $addrs ||
+		: $((rc += $?))
+	done
+
+	return $rc
+}
+
 # Path to /[s]ys/[c]lass/[n]et directory.
 declare -r NCTL_SCN_DIR="$NCTL_SYS_DIR/class/net"
 
