@@ -200,7 +200,11 @@ netconf_ifup()
 		*)
 			## Non-existing interface (e.g. veth, vlan, gre, ...)
 
-			ip link replace dev "$u_if" up "$@" 2>&1 |nctl_log_pipe
+			if [ -e "$NCTL_SCN_DIR/$u_if" ]; then
+				ip link set dev "$u_if" up "$@" 2>&1 |nctl_log_pipe
+			else
+				ip link replace dev "$u_if" up "$@" 2>&1 |nctl_log_pipe
+			fi
 			;;
 	esac
 	nctl_get_rc
