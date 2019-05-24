@@ -21,6 +21,3 @@ iptables rules supported, however their functionality is limited by
 missing pid, uts and mount namespace isolation. Please consider using
 container solutions like docker or lxc if it is necessary to run program
 in virtual router network namespace.
-
-See /netctl/etc/netconf.conf comments for more information on file and
-variable name formats and configuration examples.
