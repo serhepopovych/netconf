@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Log all messages to standard output in addition to logfile
-NCTL_LOG_STD=y
-
 # External tool dependencies, MUST always be defined,
 # even if empty (e.g.: declare -a crt1_request_tools_list=())
 declare -a crt1_request_tools_list=()
@@ -11,11 +8,6 @@ declare -a crt1_request_tools_list=()
 . @target@/netctl/lib/bash/crt1.sh
 
 # Source functions libraries
-. @target@/netctl/lib/bash/librtti.sh
-. @target@/netctl/lib/bash/libiter.sh
-. @target@/netctl/lib/bash/libfile.sh
-. @target@/netctl/lib/bash/liblog.sh
-. @target@/netctl/lib/bash/libprocess.sh
 . @target@/netctl/lib/bash/libstring.sh
 . @target@/netctl/lib/bash/libnetconf.sh
 

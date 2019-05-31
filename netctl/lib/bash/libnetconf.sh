@@ -18,6 +18,9 @@ declare -a crt1_request_tools_list=(
 	'ethtool'		# ethtool(8)
 )
 
+# Log all messages to standard output in addition to logfile
+NCTL_LOG_STD=y
+
 # Source startup code
 . @target@/netctl/lib/bash/crt1.sh
 
