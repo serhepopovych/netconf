@@ -19,6 +19,38 @@ declare -a crt1_request_tools_list=()
 . @target@/netctl/lib/bash/libstring.sh
 . @target@/netctl/lib/bash/libnetconf.sh
 
+# Usage: netconf_argv_make <on_fail> [...]
+netconf_argv_make()
+{
+	local -i on_fail="${1:?missing 1st argument to \"$FUNCNAME\" (on_fail)}"
+	shift
+
+	netconf_argv="$(nctl_mtch4pat '' '|' "$netconf_items_mtch" "$@")"
+	local -i rc=$?
+
+	[ $rc -eq 0 -o $on_fail -eq 0 ] || return
+
+	# Turn into array ('\n' as word split)
+	local ifs="$IFS"
+	IFS='
+'
+	netconf_argv=($netconf_argv)
+	IFS="$ifs"
+
+	netconf_argv_size=${#netconf_argv[@]}
+
+	# Use default list of items
+	if [ $netconf_argv_size -le 0 ]; then
+		netconf_argv=("${netconf_items_dflt[@]}")
+		netconf_argv_mtch="$netconf_items_mtch"
+	else
+		# Add match mapping
+		nctl_args2pat 'netconf_argv_mtch' '|' "${netconf_argv[@]}"
+	fi
+
+	return $rc
+}
+
 # Usage: netconf_reorder_up [...]
 netconf_reorder_up()
 {
@@ -265,28 +297,11 @@ declare netconf_argv_mtch=''
 case "$netconf_action" in
 	start|stop|list)
 		# Fail as soon as first non-item is seen (empty first arg - var)
-		netconf_argv="$(nctl_mtch4pat '' '|' "$netconf_items_mtch" "$@")" ||
-			usage || exit
-
-		# Turn into array ('\n' as word split)
-		_IFS="$IFS"
-		IFS=$'\n'
-		nctl_set_val 'netconf_argv' $netconf_argv
-		IFS="${_IFS}"
-
-		netconf_argv_size=${#netconf_argv[@]}
+		netconf_argv_make 1 "$@" || usage || exit
 		;;
 	up|down|show)
 		# Stop match as soon as first non-item is seen (empty first arg - var)
-		netconf_argv="$(nctl_mtch4pat '' '|' "$netconf_items_mtch" "$@")"
-
-		# Turn into array ('\n' as word split)
-		_IFS="$IFS"
-		IFS=$'\n'
-		nctl_set_val 'netconf_argv' $netconf_argv
-		IFS="${_IFS}"
-
-		netconf_argv_size=${#netconf_argv[@]}
+		netconf_argv_make 0 "$@"
 
 		# Skip to non-items (config entries)
 		shift $netconf_argv_size
@@ -306,14 +321,7 @@ case "$netconf_action" in
 		;;
 	help|usage)
 		# Fail as soon as first non-item is seen (empty first arg - var)
-		netconf_argv="$(nctl_mtch4pat '' '|' "$netconf_items_mtch" "$@")" ||
-			usage || exit
-
-		# Turn into array ('\n' as word split)
-		_IFS="$IFS"
-		IFS=$'\n'
-		nctl_set_val 'netconf_argv' $netconf_argv
-		IFS="${_IFS}"
+		netconf_argv_make 1 "$@" || usage || exit
 
 		"$netconf_action" "${netconf_argv[@]}"
 		exit $NCTL_EXIT_SUCCESS
@@ -323,15 +331,6 @@ case "$netconf_action" in
 		exit $NCTL_EXIT_FAILURE
 		;;
 esac
-
-# Use default list of items
-if [ $netconf_argv_size -le 0 ]; then
-	netconf_argv=("${netconf_items_dflt[@]}")
-	netconf_argv_mtch="$netconf_items_mtch"
-else
-	# Add match mapping
-	nctl_args2pat 'netconf_argv_mtch' '|' "${netconf_argv[@]}"
-fi
 
 # Load netconf files
 netconf_source "${netconf_argv[@]}" || usage || exit
