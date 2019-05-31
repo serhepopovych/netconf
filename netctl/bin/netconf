@@ -210,10 +210,10 @@ usage()
 {
 	local -i rc=$?
 
-	printf >&$NCTL_STDERR '
-usage: %s {start|stop|list} [<item>...]
+	printf >&2 '
+usage: %s {start|stop|list|help} [<item>...]
        %s {up|down|show} [<item>...] <var>...
-       %s {help|usage} [<item>...]
+       %s usage
 ' \
 		"$program_invocation_short_name" \
 		"$program_invocation_short_name" \
@@ -221,7 +221,7 @@ usage: %s {start|stop|list} [<item>...]
 		#
 
 	if [ "${FUNCNAME[1]}" != "help" ]; then
-		printf >&$NCTL_STDERR '
+		printf >&2 '
 Use "%s help" and "%s help <item>..." to get more information.
 
 ' \
@@ -248,7 +248,7 @@ help()
 			if nctl_is_function "$func"; then
 				eval "$func"
 			else
-				echo >&$NCTL_STDERR '
+				echo >&2 '
 Help details is not available.
 '
 			fi
@@ -258,7 +258,7 @@ Help details is not available.
 	else
 		local item item_desc
 
-		cat >&$NCTL_STDERR <<'_EOF'
+		cat >&2 <<'_EOF'
 
 where
     <item> is space separated list of one or more of netconf
@@ -268,11 +268,11 @@ _EOF
 
 		for item in "${netconf_items_dflt[@]}"; do
 			eval item_desc="\$netconf_item_${item}_desc"
-			printf >&$NCTL_STDERR '%10s%-*s - %s\n' \
+			printf >&2 '%10s%-*s - %s\n' \
 				'' $netconf_item_name_max "$item" "$item_desc"
 		done
 
-		cat >&$NCTL_STDERR <<'_EOF'
+		cat >&2 <<'_EOF'
 
     <var> is space separated list of variables names to perform
         action on, taken from one or more configuration <item>s
@@ -319,16 +319,21 @@ case "$netconf_action" in
 		# There might be no arguments after above substitutions
 		$(IFS=''; [ -n "$*" ]) || exit 0
 		;;
-	help|usage)
+	help)
 		# Fail as soon as first non-item is seen (empty first arg - var)
 		netconf_argv_make 1 "$@" || usage || exit
 
 		"$netconf_action" "${netconf_argv[@]}"
-		exit $NCTL_EXIT_SUCCESS
+		exit 0
+		;;
+	usage)
+		[ $# -eq 0 ]
+		usage
+		exit
 		;;
 	*)
 		usage
-		exit $NCTL_EXIT_FAILURE
+		exit 1
 		;;
 esac
 
