@@ -915,7 +915,7 @@ netconf_vr_up()
 	set -- $val
 
 	u_name="$1"
-	u_dir="$netconf_dir/vr/$u_name"
+	u_dir="$netconf_data_dir/vr/$u_name"
 
 	[ -d "$u_dir" ] ||
 		nctl_inc_rc rc || return $rc
@@ -1050,7 +1050,7 @@ netconf_vr_up()
 
 	# 7. Start network subsystem in vr
 	NCTL_LOG_FILE=n \
-	netconf_dir="$u_dir/netconf" \
+	netconf_data_dir="$u_dir/netconf" \
 	ip netns exec "$u_name" \
 		"$program_invocation_name" start 2>&1 |nctl_log_pipe ||
 		nctl_inc_rc rc || return $rc
@@ -1096,7 +1096,7 @@ netconf_vr_show()
 	set -- $val
 
 	local u_name="$1"
-	local u_dir="$netconf_dir/vr/$u_name"
+	local u_dir="$netconf_data_dir/vr/$u_name"
 
 	[ -d "$u_dir" ] || return
 
@@ -1106,7 +1106,7 @@ netconf_vr_show()
 	# 1. List vr netconf configuration
 	NCTL_LOG_PREFIX_NONE=y \
 	NCTL_LOG_FILE=n \
-	netconf_dir="$u_dir/netconf" \
+	netconf_data_dir="$u_dir/netconf" \
 		"$program_invocation_name" list 2>&1 |nctl_log_pipe
 	nctl_get_rc
 }
@@ -1204,7 +1204,7 @@ netconf_source()
 	# Process arguments
 	for ns_item in "$@"; do
 		# Skip non-existent directories
-		ns_dir="$netconf_dir/$ns_item"
+		ns_dir="$netconf_data_dir/$ns_item"
 
 		[ -d "$ns_dir" ] || continue
 
@@ -1355,8 +1355,10 @@ declare -r netconf_item_vr_desc='Virtual Router based on network namespaces'
 # Include all items in single configuration file
 declare -r netconf_item_user_desc='User specific configuration files'
 
-# Netconf base directory.
-: ${netconf_dir:="$NCTL_PREFIX/etc/netconf"}
+# Netconf directories.
+: ${netconf_etc_dir:="@target@/netctl/etc/netconf"}
+: ${netconf_sysconfig_dir:="@root@/etc/netconf"}
+: ${netconf_data_dir:="$netconf_etc_dir"}
 
 # Open accounting file. We cant rely on automatic opening by netconf_account()
 # because race condition might occur and NCTL_LOGFILE_FD == NCTL_ACCOUNT_FD.

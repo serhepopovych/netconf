@@ -13,5 +13,5 @@ case "$MODE" in
 	*) exit 0 ;;
 esac
 
-netconf_dir='/etc/netconf' \
+netconf_data_dir='@root@/etc/netconf' \
 	exec >/dev/null 2>&1 @target@/netctl/bin/netconf "$MODE"
