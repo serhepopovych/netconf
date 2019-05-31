@@ -245,7 +245,7 @@ help()
 		while [ $# -gt 0 ]; do
 			func="netconf_${1}_help"
 
-			if nctl_is_function "$func"; then
+			if [ "$(type -t "$func")" = 'function' ]; then
 				eval "$func"
 			else
 				echo >&2 '
