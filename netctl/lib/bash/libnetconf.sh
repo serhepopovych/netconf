@@ -1361,6 +1361,7 @@ declare -r netconf_item_user_desc='User specific configuration files'
 # Netconf directories.
 : ${netconf_etc_dir:="@target@/netctl/etc/netconf"}
 : ${netconf_sysconfig_dir:="@root@/etc/netconf"}
+: ${netconf_run_dir:="@target@/netctl/var/run/netconf"}
 : ${netconf_data_dir:="$netconf_etc_dir"}
 
 # Open accounting file. We cant rely on automatic opening by netconf_account()

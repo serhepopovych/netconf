@@ -83,11 +83,12 @@ netconf_reorder_show()
 	netconf_reorder_up "$@"
 }
 
-# Usage: netconf_for_each_all <action>
+# Usage: netconf_for_each_all <action> <status>
 netconf_for_each_all()
 {
 	local action="${1:?missing 1st argument to \"$FUNCNAME\" (action)}"
-	shift
+	local status="$2"
+	shift 2
 
 	local item
 	local -i rc=0
@@ -99,7 +100,11 @@ netconf_for_each_all()
 		eval "netconf_for_each_elem \
 			'$action' \
 			\"\${netconf_${item}_list[@]}\"" ||
-		: $((rc += $?))
+		{
+			: $((rc += $?))
+			status=${status:+'failed'}
+		}
+		[ -z "$status" ] || echo "$status" >"$netconf_run_dir/$item"
 	done
 
 	return $rc
@@ -108,19 +113,19 @@ netconf_for_each_all()
 # Usage: start [...]
 start()
 {
-	netconf_for_each_all 'up'
+	netconf_for_each_all 'up' 'started'
 }
 
 # Usage: stop [...]
 stop()
 {
-	netconf_for_each_all 'down'
+	netconf_for_each_all 'down' 'stopped'
 }
 
 # Usage: list [...]
 list()
 {
-	netconf_for_each_all 'show'
+	netconf_for_each_all 'show' ''
 }
 
 # Usage: netconf_for_each_arg <action> <var_name>...
@@ -197,13 +202,57 @@ show()
 	netconf_for_each_arg 'show' "$@"
 }
 
+# Usage: status [...]
+status()
+{
+	# Usage: info <item> [<var>]
+	info()
+	{
+		local i_item="${1:?missing 1st argument to \"$FUNCNAME\" (item)}"
+		local i_var="$2"
+		shift 2
+		local i_val i_file
+
+		i_file="$netconf_run_dir/$i_item"
+
+		[ -f "$i_file" ] &&
+			{ read i_val <"$i_file"; } 2>/dev/null || i_val=
+
+		case "$i_val" in
+			'started'|'stopped'|'failed') ;;
+			*) i_val='unknown' ;;
+		esac
+
+		[ -n "$i_var" ] && eval "$i_var='$i_val'" || echo "$i_val"
+	}
+
+	local item val
+	local -i n len
+
+	if [ $# -eq 1 ]; then
+		info "$1"
+		return
+	fi
+
+	len=0
+	for item in "$@"; do
+		n=${#item}
+		[ $n -le $len ] || len=$n
+	done
+
+	for item in "$@"; do
+		info "$item" 'val'
+		printf -- ' %*s : %s\n' $len "$item" "$val"
+	done
+}
+
 # Usage: usage [...]
 usage()
 {
 	local -i rc=$?
 
 	printf >&2 '
-usage: %s {start|stop|list|help} [<item>...]
+usage: %s {start|stop|status|list|help} [<item>...]
        %s {up|down|show} [<item>...] <var>...
        %s usage
 ' \
@@ -311,7 +360,7 @@ case "$netconf_action" in
 		# There might be no arguments after above substitutions
 		$(IFS=''; [ -n "$*" ]) || exit 0
 		;;
-	help)
+	status|help)
 		# Fail as soon as first non-item is seen (empty first arg - var)
 		netconf_argv_make 1 "$@" || usage || exit
 
