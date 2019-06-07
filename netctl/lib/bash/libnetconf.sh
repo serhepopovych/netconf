@@ -1168,7 +1168,7 @@ netconf_source()
 {
 	local -a ns_files
 	local -i ns_file_idx=0 ns_var_idx=0
-	local ns_item ns_var ns_dir ns_file ns_regex ns_eval ns_tmp
+	local ns_item ns_var ns_dir ns_iter ns_regex ns_eval ns_tmp
 
 	# Need for substitution when iterating over variables names and set arguments
 	ns_eval="$IFS"
@@ -1215,13 +1215,13 @@ netconf_source()
 		ns_files=()
 		ns_file_idx=0
 
-		for ns_file in "$ns_dir"/*; do
-			[ -f "$ns_file" -a -r "$ns_file" -a -s "$ns_file" ] ||
+		for ns_iter in "$ns_dir"/*; do
+			[ -f "$ns_iter" -a -r "$ns_iter" -a -s "$ns_iter" ] ||
 				continue
 
-			. "$ns_file" || return
+			. "$ns_iter" || return
 
-			ns_files[$((ns_file_idx++))]="$ns_file"
+			ns_files[$((ns_file_idx++))]="$ns_iter"
 		done
 
 		# Skip when nothing is sourced
@@ -1230,7 +1230,7 @@ netconf_source()
 		# Source variable(s)
 		if [ "$ns_item" = 'user' ]; then
 			# |user| assumed to be the last one
-			ns_regex="${netconf_items_mtch%|user|}"
+			ns_regex="${netconf_items_mtch%|}"
 			ns_regex="${ns_regex#|}"
 		else
 			ns_regex="$ns_item"
@@ -1252,21 +1252,39 @@ netconf_source()
 				-e "s/^[[:space:]]*($ns_regex)=[\"']?[[:space:]]*[^[:space:]'\"]+.*['\"]?[[:space:]]*(#|\$)/\1/p"
 		)
 		do
-			# Note that element indexing isn't contiguous
-			eval "netconf_${ns_var%%_*}_list[\$((ns_var_idx++))]='$ns_var'"
+			ns_tmp="${ns_var%%_*}"
 
-			[ "$ns_item" = 'user' ] || continue
+			if [ "$ns_tmp" != 'user' ]; then
+				# Note that element indexing isn't contiguous
+				eval "netconf_${ns_tmp}_list[\$((ns_var_idx++))]='$ns_var'"
+
+				[ "$ns_item" = 'user' ] || continue
+
+				# Create map of user managed variables
+				netconf_user_map="$netconf_user_map$ns_var|"
+
+				ns_tmp="user_${ns_var#*_}"
+
+				# Value is a list of item(s) variable names
+				eval "$ns_tmp=\"\$${ns_tmp:+$ns_tmp }\$ns_var\""
+			else
+				ns_tmp="$ns_var"
+
+				eval "ns_var=\"\$$ns_tmp\""
+
+				IFS="$ns_eval"
+
+				for ns_iter in $ns_var; do
+					[ -z "${netconf_user_map##*|$ns_iter|*}" ] ||
+						netconf_user_map="$netconf_user_map$ns_iter|"
+				done
+
+				IFS=$'\n'
+			fi
 
 			# Use pattern match to exclude duplicates
-			ns_tmp="user_${ns_var#*_}"
 			[ -z "${netconf_user_list##*|$ns_tmp|*}" ] ||
 				netconf_user_list="$netconf_user_list$ns_tmp|"
-
-			# Create map of user managed variables
-			netconf_user_map="$netconf_user_map$ns_var|"
-
-			# Value is a list of item(s) variable names
-			eval "$ns_tmp=\"\$$ns_tmp\$ns_var \""
 		done
 
 		IFS="$ns_eval"
