@@ -1231,6 +1231,7 @@ netconf_source()
 		if [ "$ns_item" = 'user' ]; then
 			# |user| assumed to be the last one
 			ns_regex="${netconf_items_mtch%|user|}"
+			ns_regex="${ns_regex#|}"
 		else
 			ns_regex="$ns_item"
 		fi
