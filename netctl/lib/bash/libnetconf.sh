@@ -10,7 +10,7 @@ declare -a crt1_request_tools_list=(
 	'tc'			# tc(8)
 	'xargs'			# xargs(1)
 	'sed'			# sed(1)
-	'cat'			# cat(1)
+	'sort'			# sort(1)
 	'ipset'			# ipset(8)
 	'iptables-restore'	# iptables-restore(8)
 	'ip6tables-restore'	# ip6tables-restore(8)
@@ -1249,7 +1249,8 @@ netconf_source()
 			xargs sed -nE \
 				-e '/^[[:space:]]*(#|$)/b' \
 				-e '/^[[:space:]]*[^[:space:]]+_(ref|a)[[:digit:]]+=/b' \
-				-e "s/^[[:space:]]*($ns_regex)=[\"']?[[:space:]]*[^[:space:]'\"]+.*['\"]?[[:space:]]*(#|\$)/\1/p"
+				-e "s/^[[:space:]]*($ns_regex)=[\"']?[[:space:]]*[^[:space:]'\"]+.*['\"]?[[:space:]]*(#|\$)/\1/p" |\
+			LC_ALL=C sort -u
 		)
 		do
 			ns_tmp="${ns_var%%_*}"
