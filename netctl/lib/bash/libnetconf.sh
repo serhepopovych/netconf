@@ -1261,13 +1261,15 @@ netconf_source()
 
 				[ "$ns_item" = 'user' ] || continue
 
-				# Create map of user managed variables
-				netconf_user_map="$netconf_user_map$ns_var|"
+				if [ -n "${netconf_user_map##*|$ns_var|*}" ]; then
+					# Update map of user managed variables
+					netconf_user_map="$netconf_user_map$ns_var|"
 
-				ns_tmp="user_${ns_var#*_}"
+					ns_tmp="user_${ns_var#*_}"
 
-				# Value is a list of item(s) variable names
-				eval "$ns_tmp=\"\$${ns_tmp:+$ns_tmp }\$ns_var\""
+					# Value is a list of item(s) variable names
+					eval "$ns_tmp=\"\$${ns_tmp:+$ns_tmp }\$ns_var\""
+				fi
 			else
 				ns_tmp="$ns_var"
 
