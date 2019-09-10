@@ -1168,7 +1168,7 @@ netconf_source()
 {
 	local -a ns_files
 	local -i ns_file_idx=0 ns_var_idx=0
-	local ns_item ns_var ns_dir ns_iter ns_regex ns_eval ns_tmp
+	local ns_item ns_var ns_val ns_dir ns_iter ns_regex ns_eval ns_tmp
 
 	# Need for substitution when iterating over variables names and set arguments
 	ns_eval="$IFS"
@@ -1279,10 +1279,20 @@ netconf_source()
 
 				IFS="$ns_eval"
 
+				ns_val=''
+
 				for ns_iter in $ns_var; do
+					# Skip undefined or empty variable names
+					eval "[ -n \"\$$ns_iter\" ]" || continue
+
+					ns_val="${ns_val:+$ns_val }$ns_iter"
+
 					[ -z "${netconf_user_map##*|$ns_iter|*}" ] ||
 						netconf_user_map="$netconf_user_map$ns_iter|"
 				done
+
+				# Value is a list of item(s) variable names
+				eval "$ns_tmp='$ns_val'"
 
 				IFS=$'\n'
 			fi
