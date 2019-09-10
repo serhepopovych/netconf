@@ -1269,6 +1269,8 @@ netconf_source()
 
 					# Value is a list of item(s) variable names
 					eval "$ns_tmp=\"\$${ns_tmp:+$ns_tmp }\$ns_var\""
+				else
+					continue
 				fi
 			else
 				ns_tmp="$ns_var"
