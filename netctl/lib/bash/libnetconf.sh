@@ -632,6 +632,28 @@ netconf_ip6gre_show()
 }
 
 ##
+## SIT
+##
+
+# Usage: netconf_sit_up {<var_name>}
+netconf_sit_up()
+{
+	netconf_ifup "$@"
+}
+
+# Usage: netconf_sit_down {<var_name>}
+netconf_sit_down()
+{
+	netconf_ifdown "$@"
+}
+
+# Usage: netconf_sit_show {<var_name>}
+netconf_sit_show()
+{
+	netconf_ifshow "$@"
+}
+
+##
 ## NEIGHBOUR
 ##
 
@@ -996,8 +1018,8 @@ netconf_vr_up()
 				nctl_is_empty_var 'netconf_ifb_list' &&
 					netconf_source 'ifb'
 				;;
-			vrf*|br*|bond*|gtp*|g6tp*|vx*|gre*|g6re*)
-				## VRF, BRIDGE, BOND, GRETAP, IP6GRETAP, VXLAN, GRE, IP6GRE
+			vrf*|br*|bond*|gtp*|g6tp*|vx*|gre*|g6re*|sit)
+				## VRF, BRIDGE, BOND, GRETAP, IP6GRETAP, VXLAN, GRE, IP6GRE, SIT
 
 				nctl_log_msg 'x-netns for IFace %s not supported' "$u_if"
 				! :
@@ -1351,6 +1373,7 @@ declare -ar netconf_items_dflt=(
 	'ipvlan'
 	'gre'
 	'ip6gre'
+	'sit'
 	'neighbour'
 	'route'
 	'rule'
@@ -1380,6 +1403,7 @@ declare -r netconf_item_macvlan_desc='Virtual interface based on link layer addr
 declare -r netconf_item_ipvlan_desc='Interface for L3 (IPv6/IPv4) based VLANs'
 declare -r netconf_item_gre_desc='Virtual tunnel interface GRE over IPv4'
 declare -r netconf_item_ip6gre_desc='Virtual tunnel interface GRE over IPv6'
+declare -r netconf_item_sit_desc='Virtual tunnel interface IPv6 over IPv4'
 
 # Taken from ip-neighbour(8), ip-route(8) and ip-rule(8)
 declare -r netconf_item_neighbour_desc='Neighbour tables entries'
