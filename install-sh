@@ -48,6 +48,7 @@ if prepare_file "$f"; then
 
 # Predefined group names
 0		default
+0xffffffff	invalid
 0xffffffff	_reserved
 
 _EOF
