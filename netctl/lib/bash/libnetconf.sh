@@ -1258,7 +1258,7 @@ netconf_source()
 			ns_regex="$ns_item"
 		fi
 
-		ns_regex="(${ns_regex})_[[:alnum:]]+"
+		ns_regex="(${ns_regex})_[[:alnum:]_]+"
 
 		IFS=$'\n'
 
