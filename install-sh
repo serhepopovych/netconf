@@ -142,4 +142,13 @@ _EOF
 	end_header "$f"
 fi
 
+## Make /etc/ip6tables directory symlink to iptables if does not exist
+
+iptables_dir="$ROOT/etc/iptables"
+ip6tables_dir="$ROOT/etc/ip6tables"
+
+if [ -e "$iptables_dir" -a ! -e "$ip6tables_dir" ]; then
+	ln -sf 'iptables' "$ip6tables_dir"
+fi
+
 return 0
