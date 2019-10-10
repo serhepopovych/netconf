@@ -1,0 +1,9 @@
+# Customers with special network configuration.
+# For example: ISP side firewalling, NAT/PAT, etc.
+# Variable name format: vr_<login>, example:
+#
+#  vr_office="vr_office veth1a mvl3.10 mvl3.20"
+#
+# where veth1a - is uplink interface, mvl3.10, mvl3.20
+# is a downlink macvlan interfaces created from en3.10
+# and en3.20 in main netconf.
