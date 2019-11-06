@@ -1,2 +1,2 @@
-route_lo0_ref4="local 0.0.0.0/0 dev lo table divert"
-route_lo0_ref6="local ::/0 dev lo table divert"
+route_lo0="local 0.0.0.0/0 dev lo table divert"
+route_lo0_ref1="local ::/0 dev lo table divert"
