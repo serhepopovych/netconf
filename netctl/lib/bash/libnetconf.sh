@@ -1271,7 +1271,7 @@ netconf_source()
 			xargs sed -nE \
 				-e '/^[[:space:]]*(#|$)/b' \
 				-e '/^[[:space:]]*[^[:space:]]+_(ref|a)[[:digit:]]+=/b' \
-				-e "s/^[[:space:]]*($ns_regex)=[\"']?[[:space:]]*[^[:space:]'\"]+.*['\"]?[[:space:]]*(#|\$)/\1/p" |\
+				-e "s/^[[:space:]]*($ns_regex)=[\"']?[^'\"]+/\1/p" |\
 			LC_ALL=C sort -u
 		)
 		do
