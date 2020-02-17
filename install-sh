@@ -21,30 +21,31 @@ if prepare_file "$f"; then
 
 # Following groups currently supported:
 #
-#    0x0 - default
-#    0x1 - uplink
-#    0x2 - downlink
-#    0x3 - loopback
-#    0x4 - management
-#    0x5 - unnumbered
-#    0x6 - sink
+#    0x00 - default
+#    0x01 - uplink
+#    0x02 - downlink
+#    0x03 - loopback
+#    0x04 - management
+#    0x05 - unnumbered
+#    0x06 - sink
 
-0xf	mask
+0x0f	mask
+0xf0	submask
 
-0x1	uplink
-0x2	downlink
-0x3	loopback
-0x4	management
-0x5	unnumbered
-0x6	sink
+0x01	uplink
+0x02	downlink
+0x03	loopback
+0x04	management
+0x05	unnumbered
+0x06	sink
 
-0xffff0	rlm_mask
+0xffff00	rlm_mask
 
-0x00000	rlm_cosmos
-0x00010	rlm_sink
-0x00020	rlm_parity
-0x00040	rlm_lo
-0x00080	rlm_wo
+0x000000	rlm_cosmos
+0x000100	rlm_sink
+0x000200	rlm_parity
+0x000400	rlm_lo
+0x000800	rlm_wo
 
 # Predefined group names
 0		default
