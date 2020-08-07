@@ -1,0 +1,4 @@
+host_lo="@lo group loopback"
+# Following configuration can be used for NAT pools
+#host_lo_ref1="lo:1 203.0.113.1/28 broadcast +"
+#host_lo_ref2="lo:2 203.0.113.96/27 broadcast +"
