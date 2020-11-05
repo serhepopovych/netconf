@@ -152,4 +152,22 @@ if [ -e "$iptables_dir" -a ! -e "$ip6tables_dir" ]; then
 	ln -sf 'iptables' "$ip6tables_dir"
 fi
 
+## Add interfaces.d in /etc/network for ifupdown
+
+interfaces='/etc/network/interfaces'
+if [ -f "$interfaces" ]; then
+    interfaces_d="$interfaces.d"
+    if [ ! -d "$interfaces_d" ]; then
+        install -d "$interfaces_d"
+    fi
+
+    if ! grep -q "^source\(-directory\)\?\s\+$interfaces_d" "$interfaces"; then
+        sed -i "$interfaces" \
+            -e '/# .\+ For more information, see interfaces(5)\.$/a\
+\
+# Source interfaces configuration\
+'"source $interfaces_d/*"
+    fi
+fi
+
 return 0
