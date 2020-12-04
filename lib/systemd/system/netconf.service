@@ -1,7 +1,7 @@
 [Unit]
 Description=Extended network configuration with netconf
 After=network.target
-Before=lxc.service lxc-net.service libvirtd.service
+Before=lxc.service lxc-net.service libvirtd.service dnsmasq.service
 ConditionFileIsExecutable=@target@/netctl/bin/netconf
 
 [Service]
