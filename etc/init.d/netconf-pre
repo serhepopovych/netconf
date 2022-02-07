@@ -1,0 +1,14 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          netconf-pre
+# Required-Start:    mountkernfs $local_fs urandom
+# Required-Stop:     networking
+# Default-Start:     S
+# Default-Stop:      0 6
+# X-Start-Before:    networking
+# Short-Description: Network configuration
+# Description:       Extended network configuration with iproute2
+### END INIT INFO
+
+netconf_data_dir='@target@/etc/netconf' \
+       exec @target@/netctl/bin/netconf "$@"

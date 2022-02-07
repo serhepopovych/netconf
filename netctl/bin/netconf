@@ -1,4 +1,13 @@
 #!/bin/bash
+### BEGIN INIT INFO
+# Provides:          netconf
+# Required-Start:    netconf-pre networking
+# Required-Stop:     netconf-pre networking
+# Default-Start:     S
+# Default-Stop:      0 6
+# Short-Description: Network configuration
+# Description:       Extended network configuration with iproute2
+### END INIT INFO
 
 # External tool dependencies, MUST always be defined,
 # even if empty (e.g.: declare -a crt1_request_tools_list=())

@@ -1,9 +1,0 @@
-#!/bin/sh
-
-hook='/etc/netconf/hook'
-
-if [ -x "$hook" ]; then
-	if [ "$1" = 'lo' ]; then
-		MODE='start' IFACE='--all' exec "$hook"
-	fi
-fi

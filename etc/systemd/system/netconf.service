@@ -1,0 +1,16 @@
+[Unit]
+Description=Extended network configuration with iproute2
+After=network.target
+Before=machines.target
+Before=lxc.service lxc-net.service
+Before=libvirtd.service
+Before=dnsmasq.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=@target@/netctl/bin/netconf start
+ExecStop=@target@/netctl/bin/netconf stop
+
+[Install]
+WantedBy=multi-user.target

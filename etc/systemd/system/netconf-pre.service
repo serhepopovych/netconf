@@ -1,0 +1,14 @@
+[Unit]
+Description=Extended network configuration with iproute2
+After=network-pre.target
+Before=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Environment=netconf_data_dir=/etc/netconf
+ExecStart=@target@/netctl/bin/netconf start
+ExecStop=@target@/netctl/bin/netconf stop
+
+[Install]
+WantedBy=multi-user.target
