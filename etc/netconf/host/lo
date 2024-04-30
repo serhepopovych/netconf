@@ -24,3 +24,15 @@ host_lo="@lo group loopback"
 ## 203.0.113.96/27
 #host_lo_a20="lo:20 203.0.113.127/32"
 #host_lo_a21="lo:21 203.0.113.96/27 broadcast 203.0.113.127"
+
+# lo0
+#host_lo_ref0="lo:0 <x_lo0_ip4_address>/32"
+
+# IP unaddressed
+#host_lo_a0="lo:0 198.51.100.1/24 noprefixroute broadcast +"
+#host_lo_a1="lo:1 192.0.2.1/24 noprefixroute broadcast +"
+#OR
+# If ip-address(8) and/or kernel does not support noprefixroute option
+# ../route/lo should be updated to replace local type route with throw.
+#host_lo_a0="lo:0 198.51.100.1/24 broadcast +"
+#host_lo_a1="lo:1 192.0.2.1/24 broadcast +"

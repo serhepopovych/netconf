@@ -1,0 +1,14 @@
+host_en3="@en3 promisc on mtu 1504"
+host_en3_a0="@en3 up"
+#host_en3_a1="--set-ring-en3 rx 4096 tx 4096"
+#host_en3_a2="--set-priv-flags-en3 vlan-stag-rx on"
+
+## ipv4
+
+# sysctl
+host_en3_a40="net/ipv4/conf/en3/arp_ignore=8"
+
+## ipv6
+
+# sysctl
+host_en3_a60="net/ipv6/conf/en3/disable_ipv6=1"

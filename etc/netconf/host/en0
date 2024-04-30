@@ -1,0 +1,19 @@
+host_en0="@en0 group management mtu 1500 up"
+
+## ipv4
+
+# address
+host_en0_a40="en0:40 203.0.113.1/24 broadcast +"
+
+# sysctl
+host_en0_a41="net/ipv4/conf/en0/forwarding=0"
+host_en0_a42="net/ipv4/conf/en0/proxy_arp=0"
+
+## ipv6
+
+# address
+host_en0_a60="en0:60 fe80::203:0:113:1/64"
+
+# sysctl
+host_en0_a61="net/ipv6/conf/en0/forwarding=0"
+host_en0_a62="net/ipv6/conf/en0/proxy_ndp=0"

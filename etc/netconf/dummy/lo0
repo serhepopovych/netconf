@@ -1,3 +1,0 @@
-dummy_lo0="lo0 group loopback mtu 65536 type dummy"
-#dummy_lo0_a0="lo0:0 <x_lo0_ip4_addr>/32"
-#dummy_lo0_a1="lo0:1 <x_lo0_ip6_addr>/128"

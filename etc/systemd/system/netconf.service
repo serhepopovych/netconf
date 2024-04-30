@@ -9,8 +9,8 @@ Before=dnsmasq.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=@target@/netctl/bin/netconf start
-ExecStop=@target@/netctl/bin/netconf stop
+ExecStart=@target@/etc/init.d/netconf start
+ExecStop=@target@/etc/init.d/netconf stop
 
 [Install]
 WantedBy=multi-user.target

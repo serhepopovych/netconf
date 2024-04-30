@@ -1,0 +1,10 @@
+#en2_100="en2.100 link en2 group uplink type vlan id 100"
+#en2_100_a0="en2.100:0 <x_up_wo_ip4_address>/26 broadcast +"
+#
+## ipv4
+#en2_100_a41="net/ipv4/conf/en2.100/arp_ignore=2"
+#en2_100_a42="net/ipv4/conf/en2.100/proxy_arp=0"
+#
+## ipv6
+#en2_100_a61="net/ipv6/conf/en2.100/disable_ipv6=1"
+#en2_100_a62="net/ipv6/conf/en2.100/proxy_ndp=0"

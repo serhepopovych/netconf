@@ -1,0 +1,12 @@
+
+# Need only when no support for ip-address(8) noprefixroute available to
+# replace local type route with throw in local routing table to let
+# routing lookup fall-through throw type route to next ip-rule(8) in
+# policy-based routing list.
+#
+# By default that rule lookups in main routing table where more specific
+# prefixes (e.g. /30, /32, etc) could point to exact circuit.
+
+# IP unaddressed
+#route_lo_a0="table local throw 198.51.100.0/24"
+#route_lo_a1="table local throw 192.0.2.0/24"

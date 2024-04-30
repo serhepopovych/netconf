@@ -1,0 +1,5 @@
+[Match]
+MACAddress=52:54:00:7f:1b:00
+
+[Link]
+Name=en0

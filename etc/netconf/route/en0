@@ -1,0 +1,4 @@
+
+# default
+route_en0_v4="0.0.0.0/0 via 203.0.113.254 dev en0"
+route_en0_v6="::/0 via fe80::203:0:113:254 dev en0"

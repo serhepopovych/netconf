@@ -1,0 +1,13 @@
+host_en2="@en2 promisc on mtu 1500"
+host_en2_a0="@en2 up"
+#host_en2_a1="--set-ring-en2 rx 4096 tx 4096"
+
+## ipv4
+
+# sysctl
+host_en2_a40="net/ipv4/conf/en2/arp_ignore=8"
+
+## ipv6
+
+# sysctl
+host_en2_a60="net/ipv6/conf/en2/disable_ipv6=1"
